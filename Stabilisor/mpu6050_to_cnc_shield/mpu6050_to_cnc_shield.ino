@@ -28,6 +28,7 @@ AccelStepper step_r(AccelStepper::DRIVER, 4, 7); // roll
 
 void setup() {
   Serial.begin(115200); // set baudrate to 115200
+  Serial.setTimeout(1);
   
   for(int i = 2; i <= 8; i++) // set driver step/dir pins and drive enable pin to output
     pinMode(i, OUTPUT);
@@ -35,7 +36,6 @@ void setup() {
   pinMode(pitch_limit_sw, INPUT_PULLUP);
   pinMode(roll_limit_sw, INPUT_PULLUP);
 
-  Serial.println("start");
   step_y.setMaxSpeed(1000);
   step_y.setAcceleration(150);
   step_y.setPinsInverted(true, false,false);
@@ -68,7 +68,7 @@ void autohome() {
   int i = 0;
   while(i < 10000) {
     step_y.runSpeed();
-    Serial.println(i);
+    //Serial.println(i);
     i++;
   }
   
@@ -96,7 +96,14 @@ void autohome() {
 }
 
 void loop() {
-  Serial.println("loop");
+  while (!Serial.available()) {
+    String x = Serial.readString();
+    if(x != ""){
+    Serial.print("arduino: ");
+    Serial.println(x);
+    }
+    break;
+  }
   // put your main code here, to run repeatedly:
   
 //  step_p.moveTo(900*sin((float)millis()/1000));
@@ -130,11 +137,11 @@ void loop() {
   pr.roll += roll_offset;
   pr.pitch = constrain(pr.pitch, -15.0f, 15.0f);
   pr.roll = constrain(pr.roll, -15.0f, 15.0f);
-  Serial.print("pitch:");
+  /*Serial.print("pitch:");
   Serial.print(pr.pitch);
   Serial.print("\troll:");
   Serial.print(pr.roll);
-  Serial.println();
+  Serial.println();*/
   run_steppers();
 
 
