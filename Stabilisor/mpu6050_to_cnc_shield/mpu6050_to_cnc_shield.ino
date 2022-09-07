@@ -5,10 +5,11 @@
 #include <MultiStepper.h>
 #include <AccelStepper.h>
 
-typedef struct PitchRoll_t {
+typedef struct YawPitchRoll_t {
+  float yaw;
   float pitch;
   float roll;
-} PitchRoll_s;
+} YawPitchRoll_s;
 
 typedef struct Acc_t {
   int32_t x;
@@ -16,11 +17,14 @@ typedef struct Acc_t {
   int32_t z;
 } Acc_s;
 
+int test = 0;
+
 const int MPU = 0x68;
+const int yaw_limit_sw = 9; // arduino pin 9, CNC shield X-/X+
 const int pitch_limit_sw = 10; // arduino pin 10, CNC shield Y-/Y+
 const int roll_limit_sw = 11; // arduino pin 11, CNC shield Z-/Z+
 const int microstepping_multiplier = 1; // e.g. 1/16th microstepping -> set to 16
-const float pitch_offset = 2.4f, roll_offset = 0.0f; // degree
+const float yaw_offset = -45.0f, pitch_offset = 2.4f, roll_offset = 0.0f; // degree
 
 AccelStepper step_y(AccelStepper::DRIVER, 2, 5); // yaw
 AccelStepper step_p(AccelStepper::DRIVER, 3, 6); // pitch
@@ -33,6 +37,7 @@ void setup() {
   for(int i = 2; i <= 8; i++) // set driver step/dir pins and drive enable pin to output
     pinMode(i, OUTPUT);
   digitalWrite(8, LOW); // drive enabled, active at low level
+  pinMode(yaw_limit_sw, INPUT_PULLUP);
   pinMode(pitch_limit_sw, INPUT_PULLUP);
   pinMode(roll_limit_sw, INPUT_PULLUP);
 
@@ -64,12 +69,16 @@ void setup() {
 void autohome() {
 
   step_y.enableOutputs();
-  step_y.setSpeed(50 * microstepping_multiplier);
+  step_y.setSpeed(300 * microstepping_multiplier);
   int i = 0;
-  while(i < 10000) {
+  while(digitalRead(yaw_limit_sw) == HIGH) {
     step_y.runSpeed();
-    //Serial.println(i);
-    i++;
+  }
+
+  step_y.setCurrentPosition(1000 * microstepping_multiplier);
+  step_y.moveTo(0);
+  while(step_p.run()) {
+    // block while moving
   }
   
   step_p.enableOutputs();
@@ -127,27 +136,32 @@ void loop() {
   acc.z *= ratio;
   acc.x += (1.0f - ratio) * (tmp_acc.x/num_readings);
   acc.y += (1.0f - ratio) * (tmp_acc.y/num_readings);
-  acc.z += (1.0f - ratio) * (tmp_acc.z/num_readings);
+  acc.z += (1.0f - ratio) * (tmp_acc.z/num_readings); 
   
-  PitchRoll_s pr = calculate_pitch_roll_from_acc(acc);
+  YawPitchRoll_s ypr = calculate_pitch_roll_from_acc(acc);
 
   run_steppers();
-  
-  pr.pitch += pitch_offset;
-  pr.roll += roll_offset;
-  pr.pitch = constrain(pr.pitch, -15.0f, 15.0f);
-  pr.roll = constrain(pr.roll, -15.0f, 15.0f);
-  /*Serial.print("pitch:");
-  Serial.print(pr.pitch);
+
+  ypr.yaw += yaw_offset;
+  ypr.pitch += pitch_offset;
+  ypr.roll += roll_offset;
+  ypr.yaw = constrain(ypr.yaw, -15.0f, 15.0f);
+  ypr.pitch = constrain(ypr.pitch, -15.0f, 15.0f);
+  ypr.roll = constrain(ypr.roll, -15.0f, 15.0f);
+  Serial.print("yaw:");
+  Serial.print(ypr.yaw);
+  Serial.print("\tpitch:");
+  Serial.print(ypr.pitch);
   Serial.print("\troll:");
-  Serial.print(pr.roll);
-  Serial.println();*/
+  Serial.print(ypr.roll);
+  Serial.println();
   run_steppers();
 
-
-  int step_p_setpoint = pr.pitch * (160.0f/15.0f * 200 * microstepping_multiplier / 360); // <gear ratio> * <steps per stepper revolution> * microstepping / 360 = steps per degree
+  int step_y_setpoint = ypr.yaw * (160.0f/15.0f * 200 * microstepping_multiplier / 360);
+  step_y.moveTo(-step_y_setpoint);
+  int step_p_setpoint = ypr.pitch * (160.0f/15.0f * 200 * microstepping_multiplier / 360); // <gear ratio> * <steps per stepper revolution> * microstepping / 360 = steps per degree
   step_p.moveTo(-step_p_setpoint);
-  int step_r_setpoint = pr.roll * (160.0f/15.0f * 200 * microstepping_multiplier / 360);
+  int step_r_setpoint = ypr.roll * (160.0f/15.0f * 200 * microstepping_multiplier / 360);
   step_r.moveTo(-step_r_setpoint);
   
   run_steppers();
@@ -186,11 +200,12 @@ void setup_mpu_6050()
   Wire.endTransmission();
 }
 
-PitchRoll_s calculate_pitch_roll_from_acc(Acc_s acc) {
-  PitchRoll_s pr;
-  pr.pitch = PitchRoll(acc.y, acc.x, acc.z);
-  pr.roll = -PitchRoll(acc.x, acc.y, acc.z);
-  return pr;
+YawPitchRoll_s calculate_pitch_roll_from_acc(Acc_s acc) {
+  YawPitchRoll_s ypr;
+  ypr.yaw = calcYaw(acc.x, acc.y, acc.z);
+  ypr.pitch = PitchRoll(acc.y, acc.x, acc.z);
+  ypr.roll = -PitchRoll(acc.x, acc.y, acc.z);
+  return ypr;
 }
 
 // written by Gaurish Arkesteyn
@@ -207,6 +222,11 @@ float PitchRoll(float A, float B, float C)
   R_Value = R_Value * 180 / PI;
  
   return R_Value;
+}
+
+float calcYaw(float x, float y, float z){
+  float yaw = 180 * atan (z/sqrt(x*x + z*z))/ PI;
+  return yaw;
 }
 
 // written by Gaurish Arkesteyn, modified by Henkjan Veldhoven
