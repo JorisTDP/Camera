@@ -17,6 +17,7 @@ from dotenv import dotenv_values
 class Controller():
     def __init__(self):
         config = dotenv_values('.env.server')
+        print(config['COM_PORT'])
 
         # Start the communication responsible for all communication with the
         # clients

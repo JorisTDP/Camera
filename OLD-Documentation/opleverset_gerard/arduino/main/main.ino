@@ -12,7 +12,7 @@
 #define STEPPER_ENABLE 8
 
 #define X_MAX_DEGREES 270L
-#define Z_MAX_DEGREES 180L
+#define Z_MAX_DEGREES 45L
 
 // 1/4 microstepping
 // #define X_STEPS_DEGREE (13500/180)
@@ -28,8 +28,8 @@
 
 long POS_X = 0;
 long POS_Z = 0;
-long MIN_X = 500;
-long MIN_Z = 500;
+long MIN_X = 100;
+long MIN_Z = 100;
 long MAX_X = X_MAX_DEGREES*X_STEPS_DEGREE;
 long MAX_Z = Z_MAX_DEGREES*Z_STEPS_DEGREE;
 
@@ -63,14 +63,14 @@ void setup()
   pinMode(X_LIMIT, INPUT_PULLUP);
   pinMode(Z_LIMIT, INPUT_PULLUP);
 
-  x_stepper.setMaxSpeed(10000.0);
-  x_stepper.setAcceleration(5000.0);
+  x_stepper.setMaxSpeed(1000.0);
+  x_stepper.setAcceleration(500.0);
   x_stepper.setPinsInverted(true, false, false);
 
-  z_stepper.setMaxSpeed(10000.0);
-  z_stepper.setAcceleration(5000.0);
+  z_stepper.setMaxSpeed(1000.0);
+  z_stepper.setAcceleration(500.0);
 
-  x_stepper.setSpeed(-10000);
+  x_stepper.setSpeed(-1000);
   while(!digitalRead(X_LIMIT)) {
     x_stepper.runSpeed();
   }

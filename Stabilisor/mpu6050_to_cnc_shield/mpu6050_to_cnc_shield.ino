@@ -5,6 +5,8 @@
 #include <MultiStepper.h>
 #include <AccelStepper.h>
 
+long yaw_pos;
+
 typedef struct YawPitchRoll_t {
   float yaw;
   float pitch;
@@ -105,20 +107,41 @@ void autohome() {
 }
 
 void loop() {
-  while (!Serial.available()) {
-    String x = Serial.readString();
-    if(x != ""){
-    Serial.print("arduino: ");
-    Serial.println(x);
-    }
-    break;
-  }
+  while(Serial.available() > 0) {
+    // Since this loop can take quite long to ensure stability and smoothness in the video
+    // the steppers should check to run the steppers as often as possible. This is repeated
+    // throughout this loop.
+    run_steppers();
+
+    String input = Serial.readStringUntil('\n');
+
+    run_steppers();
+
+    Serial.println(input);
+
+    String x_string = input.substring(0, input.indexOf(';'));
+    String z_string = input.substring(input.indexOf(';') + 1, input.indexOf('\n'));
+
   // put your main code here, to run repeatedly:
   
 //  step_p.moveTo(900*sin((float)millis()/1000));
 //  step_r.moveTo(960*cos((float)millis()/1000));
-  run_steppers();
-  
+    run_steppers();
+
+    char x_array[x_string.length()+1];
+    char z_array[z_string.length()+1];
+
+    x_string.toCharArray(x_array, x_string.length()+1);
+    z_string.toCharArray(z_array, z_string.length()+1);
+
+    float x_angle = atof(x_array);
+    float z_angle = atof(z_array);
+
+    run_steppers();
+
+    //long yaw_pos = x_angle * 300;
+    long yaw_pos = z_angle * 251.11111;
+  }
   int num_readings = 50;
   static Acc_s acc = read_mpu_6050_data();
   Acc_s tmp_acc = {.x = 0, .y = 0, .z = 0};
@@ -157,8 +180,8 @@ void loop() {
   Serial.println();
   run_steppers();
 
-  int step_y_setpoint = ypr.yaw * (160.0f/15.0f * 200 * microstepping_multiplier / 360);
-  step_y.moveTo(-step_y_setpoint);
+  //int step_y_setpoint = ypr.yaw * (160.0f/15.0f * 200 * microstepping_multiplier / 360);
+  step_y.moveTo(yaw_pos);
   int step_p_setpoint = ypr.pitch * (160.0f/15.0f * 200 * microstepping_multiplier / 360); // <gear ratio> * <steps per stepper revolution> * microstepping / 360 = steps per degree
   step_p.moveTo(-step_p_setpoint);
   int step_r_setpoint = ypr.roll * (160.0f/15.0f * 200 * microstepping_multiplier / 360);
