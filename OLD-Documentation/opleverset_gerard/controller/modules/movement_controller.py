@@ -56,6 +56,9 @@ class MovementController():
         print("Sending: ", str(angles[0]) + ';' + str(angles[1]))
         self.ser.write((str(angles[0]) + ';' + str(angles[1]) + '\n').encode())
         print("Sent angles over serial")
+        for i in range(5):
+            ndata = self.ser.readline()
+            print("data= " + ndata.decode('utf-8'))
 
     def move_coordinates(self, data: list, offsets: list) -> list:
         target = tuple(float(val) for val in data)

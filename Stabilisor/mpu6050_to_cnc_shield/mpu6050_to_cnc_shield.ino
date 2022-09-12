@@ -128,7 +128,7 @@ void loop() {
 //  step_r.moveTo(960*cos((float)millis()/1000));
     run_steppers();
 
-    char x_array[x_string.length()+1];
+      char x_array[x_string.length()+1];
     char z_array[z_string.length()+1];
 
     x_string.toCharArray(x_array, x_string.length()+1);
@@ -139,8 +139,8 @@ void loop() {
 
     run_steppers();
 
-    //long yaw_pos = x_angle * 300;
-    long yaw_pos = z_angle * 251.11111;
+    long yaw_pos = x_angle * 300;
+    //long yaw_pos = z_angle * 251.11111;
   }
   int num_readings = 50;
   static Acc_s acc = read_mpu_6050_data();

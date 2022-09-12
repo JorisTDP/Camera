@@ -38,8 +38,8 @@ AccelStepper x_stepper(AccelStepper::FULL2WIRE, DIR_X, STEP_X);
 AccelStepper z_stepper(AccelStepper::FULL2WIRE, DIR_Z, STEP_Z);
 
 void runSteppers() {
-  x_stepper.run();
-  z_stepper.run();
+  //x_stepper.run();
+  //z_stepper.run();
 }
 
 void finishMovement() {
