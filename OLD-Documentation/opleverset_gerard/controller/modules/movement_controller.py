@@ -1,5 +1,5 @@
 #!python3.9
-from .gps_calculations import calculate_desired_compass_bearing, calculate_distance_to_target, calculate_next_position
+from gps_calculations import calculate_desired_compass_bearing, calculate_distance_to_target, calculate_next_position
 
 import math
 
