@@ -37,12 +37,12 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as radar:
             conn, addr = radar.accept()
             with conn:
                 input("Start simulation prep?")
-                lat = 51.903890
-                lon = 4.409957
+                lat = 50.896819 #51.8968268
+                lon = 4.338292 #4.35375342
                 dist = 8
-                bearing = 55
-                send = str(lat) + ',' + str(lon) + ',' + str(dist) + ',' + str(bearing)
-                conn.sendall(send.encode('ascii'))
+                bearing = 1
+                #send = str(lat) + ',' + str(lon) + ',' + str(dist) + ',' + str(bearing)
+                #conn.sendall(send.encode('ascii'))
                 input("Start simulation?")
                 for i in range(32):
                     send = str(lat) + ',' + str(lon) + ',' + str(dist) + ',' + str(bearing)
@@ -54,8 +54,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as radar:
                     time.sleep(1)
 
                     next_cords = great_circle_destination(lat, lon, dist, bearing)
-                    lat = next_cords[0]
-                    lon = next_cords[1]
+                    #lat = next_cords[0]
+                    #lon = next_cords[1]
 
                     print(send)
 

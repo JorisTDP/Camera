@@ -19,8 +19,6 @@ typedef struct Acc_t {
   int32_t z;
 } Acc_s;
 
-int test = 0;
-
 const int MPU = 0x68;
 const int yaw_limit_sw = 9; // arduino pin 9, CNC shield X-/X+
 const int pitch_limit_sw = 10; // arduino pin 10, CNC shield Y-/Y+
@@ -72,7 +70,6 @@ void autohome() {
 
   step_y.enableOutputs();
   step_y.setSpeed(300 * microstepping_multiplier);
-  int i = 0;
   while(digitalRead(yaw_limit_sw) == HIGH) {
     step_y.runSpeed();
   }
@@ -117,18 +114,20 @@ void loop() {
 
     run_steppers();
 
-    Serial.println(input);
+    //Serial.println("recieved: " + input);
+
+    
 
     String x_string = input.substring(0, input.indexOf(';'));
-    String z_string = input.substring(input.indexOf(';') + 1, input.indexOf('\n'));
-
-  // put your main code here, to run repeatedly:
-  
+    String z_string = input.substring(input.indexOf(';')+1, input.indexOf('\n'));  //input.indexOf('\n')
 //  step_p.moveTo(900*sin((float)millis()/1000));
 //  step_r.moveTo(960*cos((float)millis()/1000));
     run_steppers();
 
-      char x_array[x_string.length()+1];
+    Serial.println("X: " + x_string);
+    Serial.println("Z: " + z_string);
+
+    char x_array[x_string.length()+1];
     char z_array[z_string.length()+1];
 
     x_string.toCharArray(x_array, x_string.length()+1);
@@ -139,9 +138,13 @@ void loop() {
 
     run_steppers();
 
-    long yaw_pos = x_angle * 300;
+    Serial.println(x_angle);
+
+    yaw_pos = ((x_angle*8)/1.8)*4.909; //270 = 6.400 //360 = ~8532 //fact = 2.66625
+                                       //91.5 = 406(2/3) | 813 (1/3) == 30* // 110* = 2.438 // 90* = 1994,727
+  }                               
     //long yaw_pos = z_angle * 251.11111;
-  }
+    //long yaw_pos = 10;
   int num_readings = 50;
   static Acc_s acc = read_mpu_6050_data();
   Acc_s tmp_acc = {.x = 0, .y = 0, .z = 0};
@@ -171,13 +174,13 @@ void loop() {
   ypr.yaw = constrain(ypr.yaw, -15.0f, 15.0f);
   ypr.pitch = constrain(ypr.pitch, -15.0f, 15.0f);
   ypr.roll = constrain(ypr.roll, -15.0f, 15.0f);
-  Serial.print("yaw:");
-  Serial.print(ypr.yaw);
+ /* Serial.print("yaw:");
+  Serial.print(yaw_pos);
   Serial.print("\tpitch:");
   Serial.print(ypr.pitch);
   Serial.print("\troll:");
   Serial.print(ypr.roll);
-  Serial.println();
+  Serial.println();*/
   run_steppers();
 
   //int step_y_setpoint = ypr.yaw * (160.0f/15.0f * 200 * microstepping_multiplier / 360);
