@@ -11,6 +11,7 @@ import math
 
 HOST = "127.0.0.1"  # The server's hostname or IP address
 PORT = 8001  # The port used by the server
+i = 0
 
 arduino = serial.Serial(port='COM3', baudrate=115200, timeout=.1)
 
@@ -20,12 +21,12 @@ def write_read(x):
     for i in range(2):
         data = arduino.readline()
         print (data.decode('utf-8'))
-    return data 
+    return data   
 
 def move_coordinates(data: list, offsets: list) -> list:
 
     location = 51.896819, 4.338292
-    elevation = 1
+    elevation = 20
 
     # calculate next coordinates
     next_position = calculate_next_position(data)
@@ -49,6 +50,7 @@ def move_coordinates(data: list, offsets: list) -> list:
 
     return angles
 
+        
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.connect((HOST, PORT))
@@ -61,11 +63,13 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         signal = lat, lon, speed, head
         offset = 2, 3
         angles = move_coordinates(signal, offset)
-        #print(angles)
-        stri = str(angles[0]) + ";" + str(angles[1]) + '\n'
-        #for a in angles:
-        #   stri += str(a)
-        #    stri += ";"
+        #angles[0] -= i
+        # if(i > 90):
+        #     i -= 5
+        # else:
+        #     i += 5
+        stri = "359.000;0.000 " + '\n'
+        #stri = str(angles[0]) + ";" + str(angles[1]) + '\n'
         print(stri)
         write_read(stri)
     

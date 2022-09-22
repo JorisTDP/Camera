@@ -54,8 +54,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as radar:
                     time.sleep(1)
 
                     next_cords = great_circle_destination(lat, lon, dist, bearing)
-                    #lat = next_cords[0]
-                    #lon = next_cords[1]
+                    lat = next_cords[0]
+                    lon = next_cords[1]
 
                     print(send)
 

@@ -6,6 +6,7 @@
 #include <AccelStepper.h>
 
 long yaw_pos;
+long pitch_pos;
 
 typedef struct YawPitchRoll_t {
   float yaw;
@@ -69,23 +70,23 @@ void setup() {
 void autohome() {
 
   step_y.enableOutputs();
-  step_y.setSpeed(300 * microstepping_multiplier);
+  step_y.setSpeed(300);// * microstepping_multiplier);
   while(digitalRead(yaw_limit_sw) == HIGH) {
     step_y.runSpeed();
   }
 
-  step_y.setCurrentPosition(1000 * microstepping_multiplier);
+  step_y.setCurrentPosition(1000);// * microstepping_multiplier);
   step_y.moveTo(0);
   while(step_p.run()) {
     // block while moving
   }
   
   step_p.enableOutputs();
-  step_p.setSpeed(-50 * microstepping_multiplier);
+  step_p.setSpeed(-50); //* microstepping_multiplier);
   while(digitalRead(pitch_limit_sw) == HIGH) {
     step_p.runSpeed();
   }
-  step_p.setCurrentPosition(-120 * microstepping_multiplier);
+  step_p.setCurrentPosition(-120);// * microstepping_multiplier);
   step_p.moveTo(0);
   while(step_p.run()) {
     // block while moving
@@ -140,8 +141,8 @@ void loop() {
 
     Serial.println(x_angle);
 
-    yaw_pos = ((x_angle*8)/1.8)*4.909; //270 = 6.400 //360 = ~8532 //fact = 2.66625
-                                       //91.5 = 406(2/3) | 813 (1/3) == 30* // 110* = 2.438 // 90* = 1994,727
+    yaw_pos = ((x_angle*8)/1.8)*5;// 1 = offset //4.909 | 91.5 = 406(2/3) | 813 (1/3) == 30* // 110* = 2.438 // 90* = 1994,727
+    pitch_pos = ((z_angle*2)/1.8);
   }                               
     //long yaw_pos = z_angle * 251.11111;
     //long yaw_pos = 10;
@@ -186,7 +187,8 @@ void loop() {
   //int step_y_setpoint = ypr.yaw * (160.0f/15.0f * 200 * microstepping_multiplier / 360);
   step_y.moveTo(yaw_pos);
   int step_p_setpoint = ypr.pitch * (160.0f/15.0f * 200 * microstepping_multiplier / 360); // <gear ratio> * <steps per stepper revolution> * microstepping / 360 = steps per degree
-  step_p.moveTo(-step_p_setpoint);
+  step_p.moveTo(pitch_pos - step_p_setpoint);
+  //step_p.moveTo(-step_p_setpoint);
   int step_r_setpoint = ypr.roll * (160.0f/15.0f * 200 * microstepping_multiplier / 360);
   step_r.moveTo(-step_r_setpoint);
   
