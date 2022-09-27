@@ -93,11 +93,11 @@ void autohome() {
   }
 
   step_r.enableOutputs();
-  step_r.setSpeed(80 * microstepping_multiplier);
+  step_r.setSpeed(40 * microstepping_multiplier);
   while(digitalRead(roll_limit_sw) == HIGH) {
     step_r.runSpeed();
   }
-  step_r.setCurrentPosition(285 * microstepping_multiplier);
+  step_r.setCurrentPosition(80 * microstepping_multiplier); //285
   step_r.moveTo(0);
   while(step_r.run()) {
     // block while moving
@@ -141,7 +141,7 @@ void loop() {
 
     Serial.println(x_angle);
 
-    yaw_pos = ((x_angle*8)/1.8)*5;// 1 = offset //4.909 | 91.5 = 406(2/3) | 813 (1/3) == 30* // 110* = 2.438 // 90* = 1994,727
+    yaw_pos = ((x_angle*8)/1.8)*5.049891;// 1 = offset //4.909 | 91.5 = 406(2/3) | 813 (1/3) == 30* // 110* = 2.438 // 90* = 1994,727
     pitch_pos = ((z_angle*2)/1.8);
   }                               
     //long yaw_pos = z_angle * 251.11111;
@@ -189,7 +189,7 @@ void loop() {
   int step_p_setpoint = ypr.pitch * (160.0f/15.0f * 200 * microstepping_multiplier / 360); // <gear ratio> * <steps per stepper revolution> * microstepping / 360 = steps per degree
   step_p.moveTo(pitch_pos - step_p_setpoint);
   //step_p.moveTo(-step_p_setpoint);
-  int step_r_setpoint = ypr.roll * (160.0f/15.0f * 200 * microstepping_multiplier / 360);
+  int step_r_setpoint = ypr.roll * (160.0f/15.0f * 80 * microstepping_multiplier / 360);
   step_r.moveTo(-step_r_setpoint);
   
   run_steppers();

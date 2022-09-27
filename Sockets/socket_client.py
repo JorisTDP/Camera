@@ -25,6 +25,7 @@ def write_read(x):
 
 def move_coordinates(data: list, offsets: list) -> list:
 
+    #location = list[4], list[5]
     location = 51.896819, 4.338292
     elevation = 20
 
@@ -68,10 +69,16 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         #     i -= 5
         # else:
         #     i += 5
-        stri = "359.000;0.000 " + '\n'
+        stri = "90.000;0.000 " + '\n'
         #stri = str(angles[0]) + ";" + str(angles[1]) + '\n'
-        print(stri)
         write_read(stri)
-    
-
+        time.sleep(10)
+        stri = "180.000;0.000 " + '\n'
+        write_read(stri)
+        time.sleep(10)
+        stri = "270.000;0.000 " + '\n'
+        write_read(stri)
+        time.sleep(10)
+        stri = "0.000;0.000 " + '\n'
+        write_read(stri)
 

@@ -44,7 +44,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as radar:
                 #send = str(lat) + ',' + str(lon) + ',' + str(dist) + ',' + str(bearing)
                 #conn.sendall(send.encode('ascii'))
                 input("Start simulation?")
-                for i in range(32):
+                for i in range(64):
                     send = str(lat) + ',' + str(lon) + ',' + str(dist) + ',' + str(bearing)
 
                     try:
