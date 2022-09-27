@@ -24,7 +24,7 @@ const int MPU = 0x68;
 const int yaw_limit_sw = 9; // arduino pin 9, CNC shield X-/X+
 const int pitch_limit_sw = 10; // arduino pin 10, CNC shield Y-/Y+
 const int roll_limit_sw = 11; // arduino pin 11, CNC shield Z-/Z+
-const int microstepping_multiplier = 1; // e.g. 1/16th microstepping -> set to 16
+const int microstepping_multiplier = 8; // e.g. 1/16th microstepping -> set to 16
 const float yaw_offset = -45.0f, pitch_offset = 2.4f, roll_offset = 0.0f; // degree
 
 AccelStepper step_y(AccelStepper::DRIVER, 2, 5); // yaw
@@ -47,13 +47,13 @@ void setup() {
   step_y.setPinsInverted(true, false,false);
   step_y.setCurrentPosition(0);
   
-  step_p.setMaxSpeed(1000);
-  step_p.setAcceleration(150);
+  step_p.setMaxSpeed(3000);
+  step_p.setAcceleration(1000);
   step_p.setPinsInverted(true, false, false); // direction inverted, step normal, enable normal
   step_p.setCurrentPosition(0);
   
   step_r.setMaxSpeed(1000);
-  step_r.setAcceleration(150);
+  step_r.setAcceleration(500);
   step_r.setPinsInverted(true, false, false); // direction inverted, step normal, enable normal
   step_r.setCurrentPosition(0);
 
@@ -82,22 +82,22 @@ void autohome() {
   }
   
   step_p.enableOutputs();
-  step_p.setSpeed(-50); //* microstepping_multiplier);
+  step_p.setSpeed(-100 * microstepping_multiplier);
   while(digitalRead(pitch_limit_sw) == HIGH) {
     step_p.runSpeed();
   }
-  step_p.setCurrentPosition(-120);// * microstepping_multiplier);
-  step_p.moveTo(0);
+  step_p.setCurrentPosition(-125 * microstepping_multiplier);
+  step_p.moveTo(0); 
   while(step_p.run()) {
     // block while moving
   }
 
   step_r.enableOutputs();
-  step_r.setSpeed(40 * microstepping_multiplier);
+  step_r.setSpeed(80 * microstepping_multiplier);
   while(digitalRead(roll_limit_sw) == HIGH) {
     step_r.runSpeed();
   }
-  step_r.setCurrentPosition(80 * microstepping_multiplier); //285
+  step_r.setCurrentPosition(82 * microstepping_multiplier); //285
   step_r.moveTo(0);
   while(step_r.run()) {
     // block while moving
@@ -115,9 +115,7 @@ void loop() {
 
     run_steppers();
 
-    //Serial.println("recieved: " + input);
-
-    
+   // Serial.println("recieved: " + input);
 
     String x_string = input.substring(0, input.indexOf(';'));
     String z_string = input.substring(input.indexOf(';')+1, input.indexOf('\n'));  //input.indexOf('\n')
@@ -125,7 +123,6 @@ void loop() {
 //  step_r.moveTo(960*cos((float)millis()/1000));
     run_steppers();
 
-    Serial.println("X: " + x_string);
     Serial.println("Z: " + z_string);
 
     char x_array[x_string.length()+1];

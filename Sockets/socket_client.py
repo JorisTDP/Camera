@@ -69,9 +69,11 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         #     i -= 5
         # else:
         #     i += 5
-        stri = "90.000;0.000 " + '\n'
-        #stri = str(angles[0]) + ";" + str(angles[1]) + '\n'
+        stri = "180.000;30.000 " + '\n'
+        print(stri)
         write_read(stri)
+        #stri = str(angles[0]) + ";" + str(angles[1]) + '\n'
+        """write_read(stri)
         time.sleep(10)
         stri = "180.000;0.000 " + '\n'
         write_read(stri)
@@ -80,5 +82,5 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         write_read(stri)
         time.sleep(10)
         stri = "0.000;0.000 " + '\n'
-        write_read(stri)
+        write_read(stri)"""
 
