@@ -25,9 +25,9 @@ def write_read(x):
 
 def move_coordinates(data: list, offsets: list) -> list:
 
-    #location = list[4], list[5]
-    location = 51.896819, 4.338292
-    elevation = 20
+    location = float(list[4]), float(list[5])
+    #location = 51.896819, 4.338292
+    elevation = 1
 
     # calculate next coordinates
     next_position = calculate_next_position(data)
@@ -42,6 +42,7 @@ def move_coordinates(data: list, offsets: list) -> list:
 
         # calculate desired z angle
     z_angle = math.degrees(math.atan(distance/elevation))
+    z_angle = 90 - z_angle 
 
         # apply offsets to x and z angles
     x_angle, z_angle = x_angle + offsets[0], z_angle + offsets[1]
@@ -60,8 +61,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         data = s.recv(1024)
         ndata = data.decode('utf-8')
         list = ndata.split(',')
-        lat, lon, speed, head = [float(i) for i in list]
-        signal = lat, lon, speed, head
+        lat, lon, speed, head, loc_lat, loc_lon = [float(i) for i in list]
+        signal = lat, lon, speed, head, loc_lat, loc_lon
         offset = 2, 3
         angles = move_coordinates(signal, offset)
         #angles[0] -= i
@@ -69,10 +70,12 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         #     i -= 5
         # else:
         #     i += 5
-        stri = "180.000;30.000 " + '\n'
+        stri = "0.000;12.000 " + '\n'
+        #stri = str(angles[0]) + ";" + str(angles[1]) + '\n'
         print(stri)
         write_read(stri)
-        #stri = str(angles[0]) + ";" + str(angles[1]) + '\n'
+
+
         """write_read(stri)
         time.sleep(10)
         stri = "180.000;0.000 " + '\n'

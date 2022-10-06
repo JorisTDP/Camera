@@ -37,15 +37,17 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as radar:
             conn, addr = radar.accept()
             with conn:
                 input("Start simulation prep?")
-                lat = 50.896819 #51.8968268
-                lon = 4.338292 #4.35375342
+                lat = 51.896819 #51.8968268
+                lon = 4.338410 #4.35375342
                 dist = 8
                 bearing = 1
+                loc_lat = 51.896819
+                loc_lon = 4.338292
                 #send = str(lat) + ',' + str(lon) + ',' + str(dist) + ',' + str(bearing)
                 #conn.sendall(send.encode('ascii'))
                 input("Start simulation?")
                 for i in range(64):
-                    send = str(lat) + ',' + str(lon) + ',' + str(dist) + ',' + str(bearing)
+                    send = str(lat) + ',' + str(lon) + ',' + str(dist) + ',' + str(bearing) + ',' + str(loc_lat) + ',' + str(loc_lon)
 
                     try:
                         conn.sendall(send.encode('ascii'))
@@ -69,7 +71,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as radar:
     lon = 4.409957
     dist = 8
     bearing = 55
-
+    loc_lat = 51.896819
+    loc_lon = 4.338292
     counter = 0
 
     print("Loop mode started")
