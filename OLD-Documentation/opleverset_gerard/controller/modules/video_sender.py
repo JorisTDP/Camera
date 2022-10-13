@@ -14,6 +14,8 @@ class VideoSender():
         # Start the videocapture to be able to get frames from the camera.
         self.capture_device = capture_device
         self.camera = cv2.VideoCapture(capture_device)
+        print("CAPTURE DEVICE")
+        print(capture_device)
         self.camera.set(3, 1280)
         self.camera.set(4, 720)
 

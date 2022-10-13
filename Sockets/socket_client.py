@@ -70,7 +70,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         #     i -= 5
         # else:
         #     i += 5
-        stri = "0.000;12.000 " + '\n'
+        stri = "100.000;10.000 " + '\n'
         #stri = str(angles[0]) + ";" + str(angles[1]) + '\n'
         print(stri)
         write_read(stri)

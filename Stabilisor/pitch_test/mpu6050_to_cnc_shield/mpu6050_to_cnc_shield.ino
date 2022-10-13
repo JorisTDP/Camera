@@ -43,20 +43,11 @@ void setup() {
   pinMode(roll_limit_sw, INPUT_PULLUP);
 
   //Initialisation of Steppemotors 17HS4023
-  step_y.setMaxSpeed(2000);
-  step_y.setAcceleration(550);
-  step_y.setPinsInverted(true, false,false);
-  step_y.setCurrentPosition(0);
   
   step_p.setMaxSpeed(14000);
   step_p.setAcceleration(13000);
   step_p.setPinsInverted(true, false, false); // direction inverted, step normal, enable normal
   step_p.setCurrentPosition(0);
-  
-  step_r.setMaxSpeed(1500);
-  step_r.setAcceleration(750);
-  step_r.setPinsInverted(true, false, false); // direction inverted, step normal, enable normal
-  step_r.setCurrentPosition(0);
 
   Wire.begin();
   Wire.setClock(400000);
@@ -70,18 +61,6 @@ void setup() {
 
 void autohome() {
 
-  step_y.enableOutputs();
-  step_y.setSpeed(150);// * microstepping_multiplier);
-  while(digitalRead(yaw_limit_sw) == HIGH) {
-    step_y.runSpeed();
-  }
-
-  step_y.setCurrentPosition(500);// * microstepping_multiplier);
-  step_y.moveTo(0);
-  while(step_p.run()) {
-    // block while moving
-  }
-  
   step_p.enableOutputs();
   step_p.setSpeed(-200 * microstepping_multiplier);
   while(digitalRead(pitch_limit_sw) == HIGH) {
@@ -93,57 +72,11 @@ void autohome() {
     // block while moving
   }
 
-  step_r.enableOutputs();
-  step_r.setSpeed(70 * microstepping_multiplier);
-  while(digitalRead(roll_limit_sw) == HIGH) {
-    step_r.runSpeed();
-  }
-  step_r.setCurrentPosition(90 * microstepping_multiplier); //285
-  step_r.moveTo(0);
-  while(step_r.run()) {
-    // block while moving
-  }
 }
 
 void loop() {
-  while(Serial.available() > 0) {
-    // Since this loop can take quite long to ensure stability and smoothness in the video
-    // the steppers should check to run the steppers as often as possible. This is repeated
-    // throughout this loop.
-    run_steppers();
 
-    String input = Serial.readStringUntil('\n');
-
-    run_steppers();
-
-   // Serial.println("recieved: " + input);
-
-    String x_string = input.substring(0, input.indexOf(';'));
-    String z_string = input.substring(input.indexOf(';')+1, input.indexOf('\n'));  //input.indexOf('\n')
-//  step_p.moveTo(900*sin((float)millis()/1000));
-//  step_r.moveTo(960*cos((float)millis()/1000));
-    run_steppers();
-
-    Serial.println("Z: " + z_string);
-
-    char x_array[x_string.length()+1];
-    char z_array[z_string.length()+1];
-
-    x_string.toCharArray(x_array, x_string.length()+1);
-    z_string.toCharArray(z_array, z_string.length()+1);
-
-    float x_angle = atof(x_array);
-    float z_angle = atof(z_array);
-
-    run_steppers();
-
-    Serial.println(x_angle);
-
-    yaw_pos = ((x_angle*8)/1.8)*5.049891;// 1 = offset //4.909 | 91.5 = 406(2/3) | 813 (1/3) == 30* // 110* = 2.438 // 90* = 1994,727
-    pitch_pos = ((z_angle*8)/1.8) * 10;// * microstepping_multiplier;
-
-    run_steppers();
-  }                               
+    run_steppers();                              
     //long yaw_pos = z_angle * 251.11111;
     //long yaw_pos = 10;
   int num_readings = 50;
@@ -169,28 +102,13 @@ void loop() {
 
   run_steppers();
 
-  ypr.yaw += yaw_offset;
   ypr.pitch += pitch_offset;
-  ypr.roll += roll_offset;
-  ypr.yaw = constrain(ypr.yaw, -15.0f, 15.0f);
   ypr.pitch = constrain(ypr.pitch, -15.0f, 15.0f);
-  ypr.roll = constrain(ypr.roll, -15.0f, 15.0f);
- /* Serial.print("yaw:");
-  Serial.print(yaw_pos);
-  Serial.print("\tpitch:");
-  Serial.print(ypr.pitch);
-  Serial.print("\troll:");
-  Serial.print(ypr.roll);
-  Serial.println();*/
   run_steppers();
 
 
-  //int step_y_setpoint = ypr.yaw * (160.0f/15.0f * 200 * microstepping_multiplier / 360);
-  step_y.moveTo(yaw_pos);
   int step_p_setpoint = ypr.pitch * (160.0f/15.0f * 200 * microstepping_multiplier / 360); // <gear ratio> * <steps per stepper revolution> * microstepping / 360 = steps per degree
-  step_p.moveTo(pitch_pos - step_p_setpoint);
-  int step_r_setpoint = ypr.roll * (160.0f/15.0f * 60 * microstepping_multiplier / 360); //80
-  step_r.moveTo(-step_r_setpoint);
+  step_p.moveTo(0 - step_p_setpoint);
   
   run_steppers();
   int delay_in_ms = 50;
@@ -202,9 +120,7 @@ void loop() {
 }
 
 void run_steppers() {
-  step_y.run();
   step_p.run();
-  step_r.run();
 }
 
 
@@ -230,7 +146,6 @@ void setup_mpu_6050()
 
 YawPitchRoll_s calculate_pitch_roll_from_acc(Acc_s acc) {
   YawPitchRoll_s ypr;
-  ypr.yaw = calcYaw(acc.x, acc.y, acc.z);
   ypr.pitch = PitchRoll(acc.y, acc.x, acc.z);
   ypr.roll = -PitchRoll(acc.x, acc.y, acc.z);
   return ypr;
@@ -252,10 +167,6 @@ float PitchRoll(float A, float B, float C)
   return R_Value;
 }
 
-float calcYaw(float x, float y, float z){
-  float yaw = 180 * atan (z/sqrt(x*x + z*z))/ PI;
-  return yaw;
-}
 
 // written by Gaurish Arkesteyn, modified by Henkjan Veldhoven
 Acc_s read_mpu_6050_data()
