@@ -3,42 +3,104 @@ import cv2
 import pygame
 import numpy as np
 import time
+import socket
+from input import Communication
 
-pygame.init()
-pygame.display.set_caption("OpenCV camera stream on Pygame")
-surface = pygame.display.set_mode([1280,720])
-#0 Is the built in camera
-cap = cv2.VideoCapture(1)
-#Gets fps of your camera
-fps = cap.get(cv2.CAP_PROP_FPS)
-print("fps:", fps)
-#If your camera can achieve 60 fps
-#Else just have this be 1-30 fps
-cap.set(cv2.CAP_PROP_FPS, 60)
 
-while True:
-    surface.fill([0,0,0])
+import sys
 
-    success, frame = cap.read()
-    if not success:
-        break
+from pygame.locals import *
 
-    #for some reasons the frames appeared inverted
-    frame = np.fliplr(frame)
-    frame = np.rot90(frame)
+CAMERA_IP = "127.0.0.1"
+CAMERA_PORT = 8002
 
-    # The video uses BGR colors and PyGame needs RGB
-    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+class UserInterface():
+    def __init__(self, width: int, height: int):
+        self.width = width
+        self.height = height
 
-    surf = pygame.surfarray.make_surface(frame)
+        self.offset = [0, 0]
 
-    for event in pygame.event.get():
-        if event.type == pygame.KEYUP:
-            background_color = 3 
-            surface.fill(background_color)
-            pygame.display.update
-            end_time = 10
+        self.communication = Communication(CAMERA_IP, CAMERA_PORT)
 
-    # Show the PyGame surface!
-    surface.blit(surf, (0,0))
-    pygame.display.flip()
+        # Start pygame and create a screen
+        pygame.init()
+        pygame.display.set_caption("Sens2Sea ObjectDetectie UI")
+        self.screen = pygame.display.set_mode([self.width, self.height])
+
+        self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+        self.cap.set(cv2.CAP_PROP_FPS, 60)
+
+        self.running = 1
+
+    def update_screen(self, frame):
+            # reset screen
+            self.screen.fill([0, 0, 0])
+
+            if(type(frame) != type(None)):
+                temp_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                temp_frame = np.rot90(temp_frame)
+                temp_frame = cv2.flip(temp_frame, 0)
+                #temp_frame = temp_frame.swapaxes(0, 1)
+                temp_frame = pygame.surfarray.make_surface(temp_frame)
+
+                self.screen.blit(temp_frame, (200,200))
+
+            font = pygame.font.Font('freesansbold.ttf', 30)
+
+            width = self.width
+            height = self.height
+
+            # Display available controls
+            txt = "Controls: r = reset camera | tab = switch-control-modes (+ left shift = mode-back)"
+            text = font.render(txt, True, (255,255,255), (0,0,0))
+            self.screen.blit(text, (width - font.size(txt)[0],0))
+
+            # Display current offsets in mode 0
+            pygame.display.update()
+            
+            return pygame.event.get()
+
+    def handle_user_event(event, self):
+        if event.type == pygame.QUIT:
+            del ui
+        elif event.type == KEYDOWN:
+        
+            if event.key == K_UP:
+                self.offset[0] += 1
+                print(self.offset)
+                self.communication.send_offset(bytes(self.offset))
+            if event.key == K_DOWN:
+                self.offset[0] -= 1
+                print(self.offset)
+            if event.key == K_LEFT:
+                self.offset[1] -= 1
+                print(self.offset)
+            if event.key == K_RIGHT:
+                self.offset[1] += 1
+                print(self.offset)
+                #self.communication.send_offset(offset)
+
+    def main_loop(self):
+        while True: #self.running:
+            success, frame = self.cap.read()
+            if not success:
+                break
+            pygame_events = UserInterface.update_screen(self, frame)
+
+            for event in pygame_events:
+                UserInterface.handle_user_event(event, self)
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as cam:
+        cam.bind((CAMERA_IP, CAMERA_PORT))
+        cam.listen()
+
+class UIShutdown(Exception):
+    def __init__(self):
+        super().__init__("The UI will to be shut down according to user input!")
+
+ui = UserInterface(1280, 720)
+try:
+    ui.main_loop()
+except UIShutdown: 
+    print("error")

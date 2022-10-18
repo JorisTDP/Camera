@@ -10,7 +10,8 @@ import math
 
 
 HOST = "127.0.0.1"  # The server's hostname or IP address
-PORT = 8001  # The port used by the server
+RADARPORT = 8001  # The port used by the server
+CAMERAPORT = 8002
 i = 0
 
 arduino = serial.Serial(port='COM3', baudrate=115200, timeout=.1)
@@ -52,19 +53,26 @@ def move_coordinates(data: list, offsets: list) -> list:
 
     return angles
 
-        
+    cam = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    cam.connect((HOST, CAMERAPORT))
+    cam.sendall(b"Hello, world")
+    data = cam.recv(1024)        
+
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.connect((HOST, PORT))
+    cam = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    cam.connect((HOST, CAMERAPORT))
+    s.connect((HOST, RADARPORT))
     s.sendall(b"Hello, world")
     while True:
         data = s.recv(1024)
+        data = cam.recv(1024) 
         ndata = data.decode('utf-8')
         list = ndata.split(',')
         lat, lon, speed, head, loc_lat, loc_lon = [float(i) for i in list]
         signal = lat, lon, speed, head, loc_lat, loc_lon
         offset = 2, 3
-        angles = move_coordinates(signal, offset)
+        angles = move_coordinates(signal, self.offset)
         #angles[0] -= i
         # if(i > 90):
         #     i -= 5

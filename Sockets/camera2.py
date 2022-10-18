@@ -1,34 +1,13 @@
 #!python3.9
-import pygame.camera
-import pygame.image
-import sys
+import cv2
 
-pygame.camera.init()
+cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
-cameras = pygame.camera.list_cameras()
+while(True):
+    ret, frame = cap.read()
+    cv2.imshow('frame', frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
-print("Using camera %s ..." % cameras[0])
-
-webcam = pygame.camera.Camera(cameras[0])
-
-webcam.start()
-
- # grab first frame
-img = webcam.get_image()
-
-WIDTH = img.get_width()
-HEIGHT = img.get_height()
-
-screen = pygame.display.set_mode( ( WIDTH, HEIGHT ) )
-pygame.display.set_caption("pyGame Camera View")
-
-while True :
-    for e in pygame.event.get() :
-        if e.type == pygame.QUIT :
-            sys.exit()
-
-     # draw frame
-    screen.blit(img, (0,0))
-    pygame.display.flip()
-     # grab next frame    
-    img = webcam.get_image()
+cap.release()
+cv2.destroyAllWindows()
