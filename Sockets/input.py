@@ -2,6 +2,8 @@
 import socket
 import selectors
 import select
+import math
+import time
 
 class Communication():
 
@@ -18,6 +20,9 @@ class Communication():
 
         self.socket.bind((ip, port))
         self.socket.listen()
+        self.conn, self.addr = self.socket.accept()
+        print(self.conn)
+        print(f"Connected by {self.addr}")
 
 
     def attempt_connection(self, ip: str, port: str):
@@ -32,9 +37,23 @@ class Communication():
     def message_amount(self) -> int:
         return len(self.get_messages())
 
+    def re_init(self):
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        self.socket.bind((self.ip, self.port))
+        self.socket.listen()
+        self.conn, self.addr = self.socket.accept()
+
 
     def send_offset(self, offset):
-        try:
-            self.socket.sendall(offset)
-        except socket.error:
-            print(socket.error)
+        #try:
+        self.re_init()
+        with self.conn:
+            print("sending offset: ")
+            print(offset)
+            print(self.conn)
+            #self.socket.sendall(b"Hello World")
+            self.conn.sendall(bytes(offset))
+            print("sent message")
+        #except socket.error:
+            #print(socket.error)

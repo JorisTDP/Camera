@@ -31,35 +31,37 @@ def great_circle_destination(lat, lon, d, bearing):
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as radar:
     radar.bind((RADAR_IP, RADAR_PORT))
     radar.listen()
+    print(radar)
+    conn, addr = radar.accept()
+    with conn:                    
+        print(conn)                
+        print(f"Connected by {addr}")
+        input("Start simulation prep?")
+        if(input("One way mode?") == "y"):
+            while True:
+                    lat = 51.896819 #51.8968268
+                    lon = 4.338410 #4.35375342
+                    dist = 8
+                    bearing = 1
+                    loc_lat = 51.896819
+                    loc_lon = 4.338292
+                    #send = str(lat) + ',' + str(lon) + ',' + str(dist) + ',' + str(bearing)
+                    #conn.sendall(send.encode('ascii'))
+                    input("Start simulation?")
+                    for i in range(64):
+                        send = str(lat) + ',' + str(lon) + ',' + str(dist) + ',' + str(bearing) + ',' + str(loc_lat) + ',' + str(loc_lon)
 
-    if(input("One way mode?") == "y"):
-        while True:
-            conn, addr = radar.accept()
-            with conn:
-                input("Start simulation prep?")
-                lat = 51.896819 #51.8968268
-                lon = 4.338410 #4.35375342
-                dist = 8
-                bearing = 1
-                loc_lat = 51.896819
-                loc_lon = 4.338292
-                #send = str(lat) + ',' + str(lon) + ',' + str(dist) + ',' + str(bearing)
-                #conn.sendall(send.encode('ascii'))
-                input("Start simulation?")
-                for i in range(64):
-                    send = str(lat) + ',' + str(lon) + ',' + str(dist) + ',' + str(bearing) + ',' + str(loc_lat) + ',' + str(loc_lon)
+                        try:
+                            conn.sendall(send.encode('ascii'))
+                        except:
+                            break
+                        time.sleep(1)
 
-                    try:
-                        conn.sendall(send.encode('ascii'))
-                    except:
-                        break
-                    time.sleep(1)
+                        next_cords = great_circle_destination(lat, lon, dist, bearing)
+                        lat = next_cords[0]
+                        lon = next_cords[1]
 
-                    next_cords = great_circle_destination(lat, lon, dist, bearing)
-                    lat = next_cords[0]
-                    lon = next_cords[1]
-
-                    print(send)
+                        print(send)
 
     radar.setblocking(0)
     sel = selectors.DefaultSelector()

@@ -8,7 +8,6 @@ import serial
 import time
 import math
 
-
 HOST = "127.0.0.1"  # The server's hostname or IP address
 RADARPORT = 8001  # The port used by the server
 CAMERAPORT = 8002
@@ -53,45 +52,64 @@ def move_coordinates(data: list, offsets: list) -> list:
 
     return angles
 
-    cam = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    cam.connect((HOST, CAMERAPORT))
-    cam.sendall(b"Hello, world")
-    data = cam.recv(1024)        
+    # cam = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # cam.connect((HOST, CAMERAPORT))
+    # cam.sendall(b"Hello, world")
+    # data = cam.recv(1024)        
 
 
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    cam = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    cam.connect((HOST, CAMERAPORT))
-    s.connect((HOST, RADARPORT))
-    s.sendall(b"Hello, world")
-    while True:
-        data = s.recv(1024)
-        data = cam.recv(1024) 
-        ndata = data.decode('utf-8')
-        list = ndata.split(',')
-        lat, lon, speed, head, loc_lat, loc_lon = [float(i) for i in list]
-        signal = lat, lon, speed, head, loc_lat, loc_lon
-        offset = 2, 3
-        angles = move_coordinates(signal, self.offset)
-        #angles[0] -= i
-        # if(i > 90):
-        #     i -= 5
-        # else:
-        #     i += 5
-        stri = "100.000;10.000 " + '\n'
-        #stri = str(angles[0]) + ";" + str(angles[1]) + '\n'
-        print(stri)
-        write_read(stri)
+#with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+cam = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+cam.connect((HOST, CAMERAPORT))
+s.connect((HOST, RADARPORT))
+s.sendall(b"Hello, world")
+cam.sendall(b"Hello, world")
+signal = 1,1,1,1,1,1
+offset = 0, 0
+angles = [0,0]
+while True:
+    print("=true")
+    try:
+        print()
+        # sdata = s.recv(1024)
+        # ndata = sdata.decode('utf-8')
+        # list = ndata.split(',')
+        # lat, lon, speed, head, loc_lat, loc_lon = [float(i) for i in list]
+        # signal = lat, lon, speed, head, loc_lat, loc_lon
+        # angles = move_coordinates(signal, offset)
+    except:
+        print("=======radar went wrong======")
+    try:
+        print("camdata:")
+        camdata = cam.recv(1024)
+        data = int.from_bytes(camdata, "big")
+        print(camdata)
+        print(data)
+        #print("camdata: ")
+        #print(data)
+        #offset = data 
+    except:
+        print("=======cam went wrong======")
+    #angles[0] -= i
+    # if(i > 90):
+    #     i -= 5
+    # else:[]
+    #     i += 5
+    stri = "100.000;10.000 " + '\n'
+    #stri = str(angles[0]) + ";" + str(angles[1]) + '\n'
+    print(stri)
+    write_read(stri)
 
 
-        """write_read(stri)
-        time.sleep(10)
-        stri = "180.000;0.000 " + '\n'
-        write_read(stri)
-        time.sleep(10)
-        stri = "270.000;0.000 " + '\n'
-        write_read(stri)
-        time.sleep(10)
-        stri = "0.000;0.000 " + '\n'
-        write_read(stri)"""
+    """write_read(stri)
+    time.sleep(10)
+    stri = "180.000;0.000 " + '\n'
+    write_read(stri)
+    time.sleep(10)
+    stri = "270.000;0.000 " + '\n'
+    write_read(stri)
+    time.sleep(10)
+    stri = "0.000;0.000 " + '\n'
+    write_read(stri)"""
 

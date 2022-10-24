@@ -7,6 +7,7 @@ hostname = "169.254.183.31"
 print('Connecting')
 #response = os.system('cd Sockets')
 response = os.system('start cmd /k py C:/Users/joris/Desktop/Stage/Camera/Sockets/radar_simulation.py')
+response = os.system('start cmd /k py C:/Users/joris/Desktop/Stage/Camera/Sockets/camera.py')
 response = os.system('py C:/Users/joris/Desktop/Stage/Camera/Sockets/socket_client.py')
 #response = os.system('py C:/Users/joris/Desktop/Stage/Camera/Sockets/radar_simulation.py')
 #response = os.system('py C:/Users/joris/Desktop/Stage/Camera/Sockets/socket_client.py')

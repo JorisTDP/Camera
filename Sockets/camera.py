@@ -19,7 +19,8 @@ class UserInterface():
         self.width = width
         self.height = height
 
-        self.offset = [0, 0]
+        self.offsetx = 1
+        self.offsetz = 1
 
         self.communication = Communication(CAMERA_IP, CAMERA_PORT)
 
@@ -58,6 +59,8 @@ class UserInterface():
 
             # Display current offsets in mode 0
             pygame.display.update()
+
+            self.communication.send_offset(self.offsetx)
             
             return pygame.event.get()
 
@@ -67,18 +70,17 @@ class UserInterface():
         elif event.type == KEYDOWN:
         
             if event.key == K_UP:
-                self.offset[0] += 1
-                print(self.offset)
-                self.communication.send_offset(bytes(self.offset))
+                self.offsetx += 1
+                print(self.offsetx)
             if event.key == K_DOWN:
-                self.offset[0] -= 1
-                print(self.offset)
+                self.offsetx -= 1
+                print(self.offsetx)
             if event.key == K_LEFT:
-                self.offset[1] -= 1
-                print(self.offset)
+                self.offsetz -= 1
+                print(self.offsetz)
             if event.key == K_RIGHT:
-                self.offset[1] += 1
-                print(self.offset)
+                self.offsetz += 1
+                print(self.offsetz)
                 #self.communication.send_offset(offset)
 
     def main_loop(self):
@@ -90,10 +92,6 @@ class UserInterface():
 
             for event in pygame_events:
                 UserInterface.handle_user_event(event, self)
-
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as cam:
-        cam.bind((CAMERA_IP, CAMERA_PORT))
-        cam.listen()
 
 class UIShutdown(Exception):
     def __init__(self):
