@@ -34,7 +34,7 @@ def move_coordinates(data: list, offsets: list) -> list:
 
     # calculate desired x angle
     x_angle = calculate_desired_compass_bearing(location,next_position)  #(loc, next)
-    x_angle -= 0 #x_offset
+    #x_angle -= offsets[0] #x_offset
     if(x_angle < 0): x_angle += 360
 
         # calculate distance to target
@@ -42,10 +42,12 @@ def move_coordinates(data: list, offsets: list) -> list:
 
         # calculate desired z angle
     z_angle = math.degrees(math.atan(distance/elevation))
-    z_angle = 90 - z_angle 
+    z_angle = 90 - z_angle ###later weghalen !!!!!!!!!!
 
         # apply offsets to x and z angles
-    x_angle, z_angle = x_angle + offsets[0], z_angle + offsets[1]
+    print(" x offset ===")
+    print(offsets[0])
+    x_angle, z_angle = x_angle + int(offsets[0]), z_angle + int(offsets[1])
     angles = [x_angle, z_angle]
 
     #self.move(angles)
@@ -69,25 +71,24 @@ signal = 1,1,1,1,1,1
 offset = 0, 0
 angles = [0,0]
 while True:
-    print("=true")
     try:
         print()
-        # sdata = s.recv(1024)
-        # ndata = sdata.decode('utf-8')
-        # list = ndata.split(',')
-        # lat, lon, speed, head, loc_lat, loc_lon = [float(i) for i in list]
-        # signal = lat, lon, speed, head, loc_lat, loc_lon
-        # angles = move_coordinates(signal, offset)
+        sdata = s.recv(1024)
+        ndata = sdata.decode('utf-8')
+        list = ndata.split(',')
+        lat, lon, speed, head, loc_lat, loc_lon = [float(i) for i in list]
+        signal = lat, lon, speed, head, loc_lat, loc_lon
+        angles = move_coordinates(signal, offset)
     except:
         print("=======radar went wrong======")
     try:
         print("camdata:")
-        camdata = cam.recv(1024)
-        data = int.from_bytes(camdata, "big")
+        camdata = cam.recv(1024).decode()
         print(camdata)
-        print(data)
-        #print("camdata: ")
-        #print(data)
+        noffset = camdata.split(';')
+        offset = noffset
+        print(noffset)
+        #print()
         #offset = data 
     except:
         print("=======cam went wrong======")
@@ -96,7 +97,7 @@ while True:
     #     i -= 5
     # else:[]
     #     i += 5
-    stri = "100.000;10.000 " + '\n'
+    stri = offset[0] +";" + offset[1] + '\n'
     #stri = str(angles[0]) + ";" + str(angles[1]) + '\n'
     print(stri)
     write_read(stri)

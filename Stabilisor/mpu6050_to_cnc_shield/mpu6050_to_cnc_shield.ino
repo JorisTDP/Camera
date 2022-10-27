@@ -58,7 +58,7 @@ void setup() {
   step_r.setPinsInverted(true, false, false); // direction inverted, step normal, enable normal
   step_r.setCurrentPosition(0);
 
-  step_p.setMinPulseWidth(20);
+  //step_p.setMinPulseWidth(20);
 
   Wire.begin();
   Wire.setClock(400000);

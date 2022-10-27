@@ -36,15 +36,14 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as radar:
     with conn:                    
         print(conn)                
         print(f"Connected by {addr}")
-        input("Start simulation prep?")
         if(input("One way mode?") == "y"):
             while True:
-                    lat = 51.896819 #51.8968268
-                    lon = 4.338410 #4.35375342
+                    lat = 51.89683639
+                    lon = 4.345754496
                     dist = 8
                     bearing = 1
                     loc_lat = 51.896819
-                    loc_lon = 4.338292
+                    loc_lon = 4.338410
                     #send = str(lat) + ',' + str(lon) + ',' + str(dist) + ',' + str(bearing)
                     #conn.sendall(send.encode('ascii'))
                     input("Start simulation?")
@@ -63,51 +62,21 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as radar:
 
                         print(send)
 
-    radar.setblocking(0)
-    sel = selectors.DefaultSelector()
-    sel.register(radar, selectors.EVENT_READ, data=None)
+        while True:
+            lat = 51.903890
+            lon = 4.409957
+            dist = 8
+            bearing = 55
+            loc_lat = 51.896819
+            loc_lon = 4.338292
 
-    connected_clients = []
-
-    lat = 51.903890
-    lon = 4.409957
-    dist = 8
-    bearing = 55
-    loc_lat = 51.896819
-    loc_lon = 4.338292
-    counter = 0
-
-    print("Loop mode started")
-    while True:
-        # Always accepting new connections
-        events = sel.select(timeout=0.01)
-        for key, mask in events:
-            if key.data is None:
-                print("NEW CONNECTION")
-                conn, addr = radar.accept()  # Should be ready to read
-                conn.setblocking(0)
-                connected_clients += [conn]
-
-        send = str(lat) + ',' + str(lon) + ',' + str(dist) + ',' + str(bearing)
-        
-        for client in connected_clients:
+            for i in range(64):
+                send = str(lat) + ',' + str(lon) + ',' + str(dist) + ',' + str(bearing) + ',' + str(loc_lat) + ',' + str(loc_lon)
+                print(send)
                 try:
-                    print("Sending:", send)
-                    client.sendall(send.encode('ascii'))
+                    conn.sendall(send.encode('ascii'))
                 except:
-                    connected_clients.remove(client)
-        
-        # Set the next position for the camera to look at
-        counter += 1
-        next_cords = great_circle_destination(lat, lon, dist, bearing)
-        lat = next_cords[0]
-        lon = next_cords[1]
+                    break
+                time.sleep(1)
 
-        # When counter reaches a certain value reset the counter and reverse the bearing.
-        if(counter > 32):
-            counter = 0
-            if(bearing < 180): bearing += 180
-            else: bearing -= 180
-        
-        time.sleep(1)
 

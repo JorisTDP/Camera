@@ -31,6 +31,7 @@ class UserInterface():
 
         self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
         self.cap.set(cv2.CAP_PROP_FPS, 60)
+        
 
         self.running = 1
 
@@ -59,8 +60,6 @@ class UserInterface():
 
             # Display current offsets in mode 0
             pygame.display.update()
-
-            self.communication.send_offset(self.offsetx)
             
             return pygame.event.get()
 
@@ -71,17 +70,29 @@ class UserInterface():
         
             if event.key == K_UP:
                 self.offsetx += 1
-                print(self.offsetx)
+                #print(self.offsetx)
             if event.key == K_DOWN:
                 self.offsetx -= 1
-                print(self.offsetx)
+                #print(self.offsetx)
             if event.key == K_LEFT:
                 self.offsetz -= 1
-                print(self.offsetz)
+                #print(self.offsetz)
             if event.key == K_RIGHT:
                 self.offsetz += 1
-                print(self.offsetz)
+            if event.key == K_w:
+                self.offsetx += 10
+                #print(self.offsetx)
+            if event.key == K_s:
+                self.offsetx -= 10
+                #print(self.offsetx)
+            if event.key == K_a:
+                self.offsetz -= 10
+                #print(self.offsetz)
+            if event.key == K_d:
+                self.offsetz += 10
+                #print(self.offsetz)
                 #self.communication.send_offset(offset)
+            self.communication.send_offset(self.offsetx, self.offsetz)
 
     def main_loop(self):
         while True: #self.running:
@@ -93,12 +104,15 @@ class UserInterface():
             for event in pygame_events:
                 UserInterface.handle_user_event(event, self)
 
+            #self.communication.send_offset(self.offsetx)
+
+
 class UIShutdown(Exception):
     def __init__(self):
         super().__init__("The UI will to be shut down according to user input!")
 
 ui = UserInterface(1280, 720)
-try:
-    ui.main_loop()
-except UIShutdown: 
-    print("error")
+#try:
+ui.main_loop()
+#except UIShutdown: 
+#    print("error")

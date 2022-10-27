@@ -39,21 +39,28 @@ class Communication():
 
     def re_init(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        print("s=s")
 
         self.socket.bind((self.ip, self.port))
+        print("binded")
         self.socket.listen()
+        print("listening")
         self.conn, self.addr = self.socket.accept()
+        print("accept")
 
 
-    def send_offset(self, offset):
+    def send_offset(self, offsetx, offsetz):
         #try:
-        self.re_init()
-        with self.conn:
-            print("sending offset: ")
-            print(offset)
-            print(self.conn)
-            #self.socket.sendall(b"Hello World")
-            self.conn.sendall(bytes(offset))
-            print("sent message")
+        #with self.conn:
+        print("sending offset: ")
+        data = str(offsetx) + ";" + str(offsetz)
+        encdata = data.encode("ascii")
+        #self.socket.sendall(b"Hello World")S
+
+        try:
+            self.conn.sendall(encdata)#.encode("ascii")
+        except:
+            self.re_init()
+        print("sent message")
         #except socket.error:
             #print(socket.error)
