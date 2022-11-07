@@ -48,6 +48,13 @@ class Communication():
         self.conn, self.addr = self.socket.accept()
         print("accept")
 
+    def send_input(self, input):
+        #print(input)
+        try:
+            val = int(input)
+            print(val)
+        except:
+            print("err")
 
     def send_offset(self, offsetx, offsetz):
         #try:

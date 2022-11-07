@@ -13,7 +13,7 @@ RADARPORT = 8001  # The port used by the server
 CAMERAPORT = 8002
 i = 0
 
-arduino = serial.Serial(port='COM3', baudrate=115200, timeout=.1)
+#arduino = serial.Serial(port='COM3', baudrate=115200, timeout=.1)
 
 def write_read(x):
     arduino.write(bytes(x,'utf-8'))
@@ -100,7 +100,7 @@ while True:
     stri = offset[0] +";" + offset[1] + '\n'
     #stri = str(angles[0]) + ";" + str(angles[1]) + '\n'
     print(stri)
-    write_read(stri)
+    #write_read(stri)
 
 
     """write_read(stri)
