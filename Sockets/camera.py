@@ -100,27 +100,27 @@ class UserInterface():
                     self.user_text += event.unicode    
             else:
                 if event.key == K_UP:
-                    self.offsetx += 1
+                    self.offsetz -= 1
                     #print(self.offsetx)
                 if event.key == K_DOWN:
-                    self.offsetx -= 1
+                    self.offsetz += 1
                     #print(self.offsetx)
                 if event.key == K_LEFT:
-                    self.offsetz -= 1
+                    self.offsetx += 1
                     #print(self.offsetz)
                 if event.key == K_RIGHT:
-                    self.offsetz += 1
+                    self.offsetx -= 1
                 if event.key == K_w:
-                    self.offsetx += 10
+                    self.offsetz -= 10
                     #print(self.offsetx)
                 if event.key == K_s:
-                    self.offsetx -= 10
+                    self.offsetz += 10
                     #print(self.offsetx)
                 if event.key == K_a:
-                    self.offsetz -= 10
+                    self.offsetx += 10
                     #print(self.offsetz)
                 if event.key == K_d:
-                    self.offsetz += 10
+                    self.offsetx -= 10
                     #print(self.offsetz)
                     #self.communication.send_offset(offset)
 
