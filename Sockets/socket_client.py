@@ -25,6 +25,8 @@ class SocketClient:
         self.signal = 1,1,1,1,1,1
         self.offset = 0, 0
         self.angles = [0,0]
+        self.correctInput = False
+        self.input = 1
 
     def write_read(self, x): # send angles (x) to arduino
         arduino.write(bytes(x,'utf-8'))
@@ -66,9 +68,22 @@ class SocketClient:
             print("camdata:")
             camdata = self.cam.recv(1024).decode()
             print(camdata)
-            noffset = camdata.split(';')
-            self.offset = noffset
-            print(noffset)
+            if(camdata[0] == "+"):
+                print("user input accepted")
+                inp = camdata[1:]
+                print(inp)
+                try:
+                    check = float(inp)
+                    self.input = inp
+                    self.correctInput = True
+                except:
+                    print("wrong input")
+                    self.correctInput = False
+
+            else:
+                noffset = camdata.split(';')
+                self.offset = noffset
+                print(noffset)
         except:
             print("=======cam went wrong======")
 
@@ -83,14 +98,15 @@ class SocketClient:
                 list = ndata.split(',')
                 lat, lon, speed, head, loc_lat, loc_lon = [float(i) for i in list]
                 self.signal = lat, lon, speed, head, loc_lat, loc_lon #stores radar data in signal
-                print('signal ========== ')
-                print(self.signal)
                 self.angles = self.move_coordinates(self.signal, self.offset) #use signal and offset to calculate the desired angle.
             except:
                 print("=======radar went wrong======")
      
             #stri = offset[0] +";" + offset[1] + '\n'
-            stri = str(self.angles[0]) + ";" + str(self.angles[1]) + '\n' #put the x and z angle into a string so it can be sent over serial.
+            if(self.correctInput == False):
+                stri = str(self.angles[0]) + ":" + str(self.angles[1]) + ";" + "n" '\n' #put the x and z angle into a string so it can be sent over serial.
+            else:
+                stri = str(self.angles[0]) + ":" + str(self.angles[1]) + ";" + self.input + '\n'
             #stri = "90.000;0.000 " + '\n'
             print(stri)
             self.write_read(stri) # send over serial to arduino

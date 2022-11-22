@@ -8,6 +8,8 @@
 long yaw_pos;
 long pitch_pos;
 
+float ratio = 0.8f; // 0.01 -> really fast   0.99 -> really slow
+
 typedef struct YawPitchRoll_t {
   float yaw;
   float pitch;
@@ -57,7 +59,6 @@ void setup() {
   step_r.setAcceleration(750);
   step_r.setPinsInverted(true, false, false); // direction inverted, step normal, enable normal
   step_r.setCurrentPosition(0);
-
   //step_p.setMinPulseWidth(20);
 
   Wire.begin();
@@ -120,11 +121,19 @@ void loop() {
 
    // Serial.println("recieved: " + input);
 
-    String x_string = input.substring(0, input.indexOf(';'));
-    String z_string = input.substring(input.indexOf(';')+1, input.indexOf('\n'));  //input.indexOf('\n')
+    String x_string = input.substring(0, input.indexOf(':'));
+    String z_string = input.substring(input.indexOf(':')+1, input.indexOf(';'));  //input.indexOf('\n')
+    String user_input = input.substring(input.indexOf(';')+1, input.indexOf('\n'));
 //  step_p.moveTo(900*sin((float)millis()/1000));
 //  step_r.moveTo(960*cos((float)millis()/1000));
     run_steppers();
+
+    if(user_input == "n"){
+        // do nothing      
+      } else {
+        //ratio = user_input.toInt();
+        ratio = user_input.toFloat();
+      }
 
     Serial.println("Z: " + z_string);
 
@@ -153,7 +162,7 @@ void loop() {
   }                               
     //long yaw_pos = z_angle * 251.11111;
     //long yaw_pos = 10;
-  int num_readings = 50;
+  int num_readings = 50; //40-45
   static Acc_s acc = read_mpu_6050_data();
   Acc_s tmp_acc = {.x = 0, .y = 0, .z = 0};
   for(int i = 0; i < num_readings; i++) {
@@ -164,13 +173,17 @@ void loop() {
     delay(1);
     run_steppers();
   }
-  float ratio = 0.8f; // 0.01 -> really fast   0.99 -> really slow
+  //float ratio = 0.8f; // 0.01 -> really fast   0.99 -> really slow
   acc.x *= ratio;
   acc.y *= ratio;
   acc.z *= ratio;
-  acc.x += (1.0f - ratio) * (tmp_acc.x/num_readings);
-  acc.y += (1.0f - ratio) * (tmp_acc.y/num_readings);
-  acc.z += (1.0f - ratio) * (tmp_acc.z/num_readings); 
+//  acc.x += (1.0f - ratio) * (tmp_acc.x/num_readings);
+//  acc.y += (1.0f - ratio) * (tmp_acc.y/num_readings);
+//  acc.z += (1.0f - ratio) * (tmp_acc.z/num_readings); 
+
+  acc.x += (tmp_acc.x/num_readings);
+  acc.y += (tmp_acc.y/num_readings);
+  acc.z += (tmp_acc.z/num_readings); 
 
   run_steppers();
   

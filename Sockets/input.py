@@ -30,10 +30,19 @@ class Communication():
     def send_input(self, input):
         #print(input)
         try:
-            val = int(input)
-            print(val)
+            val = "+" + str(input)
+            #print(val)
         except:
             print("err")
+
+        encdata = val.encode("ascii") # encode string
+        try:
+            self.conn.sendall(encdata) # send offset to socket_client
+        except:
+            self.re_init() # if a error occurs, attempt to reconnect so socket
+        print("sent message")
+
+        
 
     def send_offset(self, offsetx, offsetz):
         print("sending offset: ")
