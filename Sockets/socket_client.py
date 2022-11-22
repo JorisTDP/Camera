@@ -1,7 +1,5 @@
 #!python3.9
-#import gps_calculations
 from gps_calculations import calculate_desired_compass_bearing, calculate_distance_to_target, calculate_next_position
-
 
 import socket
 import serial
@@ -9,16 +7,15 @@ import time
 import threading
 import math
 
-HOST = "127.0.0.1"  # The server's hostname or IP address
-RADARPORT = 8001  # The port used by the server
-CAMERAPORT = 8002
-i = 0
+HOST = "127.0.0.1" 
+RADARPORT = 8001 
+CAMERAPORT = 8002 
 
 arduino = serial.Serial(port='COM3', baudrate=115200, timeout=.1)
 
 class SocketClient:
 
-    def __init__(self):
+    def __init__(self): #init of sockets and variables
         self.cam = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.cam.connect((HOST, CAMERAPORT))
@@ -29,18 +26,17 @@ class SocketClient:
         self.offset = 0, 0
         self.angles = [0,0]
 
-    def write_read(self, x):
+    def write_read(self, x): # send angles (x) to arduino
         arduino.write(bytes(x,'utf-8'))
         time.sleep(0.05)
         for i in range(2):
-            data = arduino.readline()
+            data = arduino.readline() #read if arduino has responded correctly
             print (data.decode('utf-8'))
         return data   
 
     def move_coordinates(self, data: list, offsets: list) -> list:
 
         location = float(data[4]), float(data[5])
-        #location = 51.896819, 4.338292
         elevation = 1
 
         # calculate next coordinates
@@ -48,32 +44,24 @@ class SocketClient:
 
         # calculate desired x angle
         x_angle = calculate_desired_compass_bearing(location,next_position)  #(loc, next)
-        #x_angle -= offsets[0] #x_offset
         if(x_angle < 0): x_angle += 360
 
-            # calculate distance to target
+        # calculate distance to target
         distance = calculate_distance_to_target(location, next_position)
 
-            # calculate desired z angle
+        # calculate desired z angle
         z_angle = math.degrees(math.atan(distance/elevation))
         z_angle = 90 - z_angle ###later weghalen !!!!!!!!!!
 
-            # apply offsets to x and z angles
-        print(" x offset ===")
+        # apply offsets to x and z angles
+        print("x offset ===")
         print(offsets[0])
         x_angle, z_angle = x_angle + int(offsets[0]), z_angle + int(offsets[1])
         angles = [x_angle, z_angle]
 
-        #self.move(angles)
+        return angles    
 
-        return angles
-
-        # cam = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # cam.connect((HOST, CAMERAPORT))
-        # cam.sendall(b"Hello, world")
-        # data = cam.recv(1024)        
-
-    def receiveOffset(self):
+    def receiveOffset(self): # function that recieves the offset from the user interface
         try:
             print("camdata:")
             camdata = self.cam.recv(1024).decode()
@@ -81,52 +69,32 @@ class SocketClient:
             noffset = camdata.split(';')
             self.offset = noffset
             print(noffset)
-            #print()
-            #offset = data 
         except:
             print("=======cam went wrong======")
 
-    #with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    def main(self):
+    def main(self): # main loop
         while True:
-            x = threading.Thread(target=self.receiveOffset)
-            x.start() 
+            x = threading.Thread(target=self.receiveOffset) 
+            x.start() # start a thread so cam data and radar data can be recieved simultaneously. 
             try:
                 print()
-                sdata = self.s.recv(1024)
+                sdata = self.s.recv(1024) #recieve radar data
                 ndata = sdata.decode('utf-8')
                 list = ndata.split(',')
                 lat, lon, speed, head, loc_lat, loc_lon = [float(i) for i in list]
-                self.signal = lat, lon, speed, head, loc_lat, loc_lon
+                self.signal = lat, lon, speed, head, loc_lat, loc_lon #stores radar data in signal
                 print('signal ========== ')
                 print(self.signal)
-                self.angles = self.move_coordinates(self.signal, self.offset)
+                self.angles = self.move_coordinates(self.signal, self.offset) #use signal and offset to calculate the desired angle.
             except:
                 print("=======radar went wrong======")
-            #angles[0] -= i
-            # if(i > 90):
-            #     i -= 5
-            # else:[]
-            #     i += 5
+     
             #stri = offset[0] +";" + offset[1] + '\n'
-            stri = str(self.angles[0]) + ";" + str(self.angles[1]) + '\n'
+            stri = str(self.angles[0]) + ";" + str(self.angles[1]) + '\n' #put the x and z angle into a string so it can be sent over serial.
             #stri = "90.000;0.000 " + '\n'
             print(stri)
-            self.write_read(stri)
+            self.write_read(stri) # send over serial to arduino
     
+
 main = SocketClient()
-
 main.main()
-
-
-"""write_read(stri)
-time.sleep(10)
-stri = "180.000;0.000 " + '\n'
-write_read(stri)
-time.sleep(10)
-stri = "270.000;0.000 " + '\n'
-write_read(stri)
-time.sleep(10)
-stri = "0.000;0.000 " + '\n'
-write_read(stri)"""
-

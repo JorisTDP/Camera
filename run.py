@@ -1,14 +1,5 @@
 import os
 
-#put static ip of raspberry pi
-hostname = "169.254.183.31"
-
-#makes connection with pi
-print('Connecting')
-#response = os.system('cd Sockets')
-response = os.system('start cmd /k py C:/Users/joris/Desktop/Stage/Camera/Sockets/radar_simulation.py')
-response = os.system('start cmd /k py C:/Users/joris/Desktop/Stage/Camera/Sockets/camera.py')
-response = os.system('py C:/Users/joris/Desktop/Stage/Camera/Sockets/socket_client.py')
-#response = os.system('py C:/Users/joris/Desktop/Stage/Camera/Sockets/radar_simulation.py')
-#response = os.system('py C:/Users/joris/Desktop/Stage/Camera/Sockets/socket_client.py')
-print('programs started')
+response = os.system('start cmd /k py C:/Users/joris/Desktop/Stage/Camera/Sockets/radar_simulation.py') #start radar_sim
+response = os.system('start cmd /k py C:/Users/joris/Desktop/Stage/Camera/Sockets/camera.py') # start camera.py
+response = os.system('py C:/Users/joris/Desktop/Stage/Camera/Sockets/socket_client.py') # start socket client

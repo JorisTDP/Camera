@@ -8,15 +8,12 @@ import time
 class Communication():
 
     def __init__(self, ip: str, port: int):
-
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         self.ip = ip
         self.port = port
-
         self.data = b""
         self.messages = []
-
 
         self.socket.bind((ip, port))
         self.socket.listen()
@@ -24,29 +21,11 @@ class Communication():
         print(self.conn)
         print(f"Connected by {self.addr}")
 
-
-    def attempt_connection(self, ip: str, port: str):
-        try:
-            self.socket.connect((ip, port))
-            self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-            self.connected = 1
-            self.data = b''
-        except socket.error:
-            self.connected = 0
-    
-    def message_amount(self) -> int:
-        return len(self.get_messages())
-
-    def re_init(self):
+    def re_init(self): # re-establish connection
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        print("s=s")
-
         self.socket.bind((self.ip, self.port))
-        print("binded")
         self.socket.listen()
-        print("listening")
         self.conn, self.addr = self.socket.accept()
-        print("accept")
 
     def send_input(self, input):
         #print(input)
@@ -57,17 +36,12 @@ class Communication():
             print("err")
 
     def send_offset(self, offsetx, offsetz):
-        #try:
-        #with self.conn:
         print("sending offset: ")
-        data = str(offsetx) + ";" + str(offsetz)
-        encdata = data.encode("ascii")
-        #self.socket.sendall(b"Hello World")S
+        data = str(offsetx) + ";" + str(offsetz) # store x and z offset in string
+        encdata = data.encode("ascii") # encode string
 
         try:
-            self.conn.sendall(encdata)#.encode("ascii")
+            self.conn.sendall(encdata) # send offset to socket_client
         except:
-            self.re_init()
+            self.re_init() # if a error occurs, attempt to reconnect so socket
         print("sent message")
-        #except socket.error:
-            #print(socket.error)
