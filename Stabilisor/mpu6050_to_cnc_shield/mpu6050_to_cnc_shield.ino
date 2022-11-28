@@ -9,6 +9,8 @@ long yaw_pos;
 long pitch_pos;
 
 float ratio = 0.8f; // 0.01 -> really fast   0.99 -> really slow
+int num_readings = 50; //40-45
+float z_angle = 0;
 
 typedef struct YawPitchRoll_t {
   float yaw;
@@ -148,11 +150,19 @@ void loop() {
     run_steppers();
 
     float x_angle = atof(x_array);
-    float z_angle = atof(z_array);
+    z_angle = atof(z_array);
 
     run_steppers();
  
     Serial.println(x_angle);
+
+    //constrain Z_ANGLE
+    if(z_angle >= 22){
+        z_angle = 22;
+      }
+     else if(z_angle <= -22){
+        z_angle = -22;
+      }
 
     //yaw_pos = ((x_angle*8)/1.8)*5.049891;// 180 = 4000 | 180 = 4,000 15 *0.72 44-45*4= 176|180
     yaw_pos = ((x_angle*8)/0.36);
@@ -162,7 +172,6 @@ void loop() {
   }                               
     //long yaw_pos = z_angle * 251.11111;
     //long yaw_pos = 10;
-  int num_readings = 50; //40-45
   static Acc_s acc = read_mpu_6050_data();
   Acc_s tmp_acc = {.x = 0, .y = 0, .z = 0};
   for(int i = 0; i < num_readings; i++) {
@@ -195,7 +204,7 @@ void loop() {
   ypr.pitch += pitch_offset;
   ypr.roll += roll_offset;
   ypr.yaw = constrain(ypr.yaw, -15.0f, 15.0f);
-  ypr.pitch = constrain(ypr.pitch, -15.0f, 15.0f);
+  ypr.pitch = constrain(ypr.pitch, -20.0f, 20.0f);
   ypr.roll = constrain(ypr.roll, -15.0f, 15.0f);
  /* Serial.print("yaw:");
   Serial.print(yaw_pos);
@@ -210,7 +219,9 @@ void loop() {
   //int step_y_setpoint = ypr.yaw * (160.0f/15.0f * 200 * microstepping_multiplier / 360);
   step_y.moveTo(yaw_pos);
   int step_p_setpoint = ypr.pitch * (160.0f/15.0f * 200 * microstepping_multiplier / 360); // <gear ratio> * <steps per stepper revolution> * microstepping / 360 = steps per degree
-  step_p.moveTo(pitch_pos - step_p_setpoint);
+  int calcPitch = pitch_pos - step_p_setpoint;
+  calcPitch = constrain(calcPitch, -1000, 1050);
+  step_p.moveTo(calcPitch);
   int step_r_setpoint = ypr.roll * (160.0f/15.0f * 60 * microstepping_multiplier / 360); //80
   step_r.moveTo(-step_r_setpoint);
   
