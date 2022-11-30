@@ -69,6 +69,11 @@ class UserInterface():
             text = font.render(txt, True, (255,255,255), (0,0,0))
             self.screen.blit(text, (width - font.size(txt)[0],0))
 
+            #Display current offset
+            offs = "Offset = " + str(self.offsetx) + "x, " str(self.offsetz) + "z"
+            offset_text = font.render(offs, True, (255,255,255), (0,0,0))
+            self.screen.blit(offset_text, (width - font.size(txt)[0],height))
+
             pygame.display.update()
             
             return pygame.event.get()
