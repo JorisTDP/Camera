@@ -32,6 +32,13 @@ class UserInterface():
         self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
         self.cap.set(cv2.CAP_PROP_FPS, 60)
 
+        self.frame_width = int(self.cap.get(3))
+        self.frame_height = int(self.cap.get(4))
+
+        self.size = (self.frame_width, self.frame_height)
+
+        self.result = cv2.VideoWriter('output.avi',cv2.VideoWriter_fourcc(*'MJPG'),10, self.size)
+
         self.input_rect = pygame.Rect(0, 0, 440, 34)
 
         self.base_font = pygame.font.Font(None, 32)
@@ -43,6 +50,7 @@ class UserInterface():
         self.color = self.color_passive
 
         self.active = False
+        self.recording = False
         self.running = 1
 
     def update_screen(self, frame):
@@ -70,9 +78,19 @@ class UserInterface():
             self.screen.blit(text, (width - font.size(txt)[0],0))
 
             #Display current offset
-            offs = "Offset = " + str(self.offsetx) + "x, " str(self.offsetz) + "z"
+            offs = "Offset = " + str(self.offsetx) + "x, " + str(self.offsetz) + "z"
             offset_text = font.render(offs, True, (255,255,255), (0,0,0))
-            self.screen.blit(offset_text, (width - font.size(txt)[0],height))
+            self.screen.blit(offset_text, (width - font.size(txt)[0],31))
+
+            if self.recording == False:
+                #self.cap.release()
+                self.result.release()
+                rec = "Not Recording."
+            else:
+                rec = "Recording!"
+                self.result.write(frame)
+            rec_text = font.render(rec, True, (255,255,255), (0,0,0))
+            self.screen.blit(rec_text, (width - font.size(txt)[0],62))
 
             pygame.display.update()
             
@@ -114,6 +132,11 @@ class UserInterface():
                     self.offsetx += 10
                 if event.key == K_d:
                     self.offsetx -= 10
+                if event.key == K_r:
+                    if self.recording == False:
+                        self.recording = True
+                    else:
+                        self.recording = False
 
             self.communication.send_offset(self.offsetx, self.offsetz) #send offset to socket client
     
