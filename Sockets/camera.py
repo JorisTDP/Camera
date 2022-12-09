@@ -4,6 +4,8 @@ import pygame
 import numpy as np
 import time
 import socket
+import datetime
+import os
 from input import Communication
 
 
@@ -32,12 +34,20 @@ class UserInterface():
         self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
         self.cap.set(cv2.CAP_PROP_FPS, 60)
 
-        self.frame_width = int(self.cap.get(3))
-        self.frame_height = int(self.cap.get(4))
+        self.frame_width = self.width #int(self.cap.get(3))
+        self.frame_height = self.height #int(self.cap.get(4))
+
+        current_time = datetime.datetime.now()
+
+        os.system('cd Recordings')
+        os.system('mkdir ' + str(current_time.month) + '-' + str(current_time.day) )
 
         self.size = (self.frame_width, self.frame_height)
 
-        self.result = cv2.VideoWriter('output.avi',cv2.VideoWriter_fourcc(*'MJPG'),10, self.size)
+        #filepath = 'C:/Users/joris/Desktop/Stage/Camera/' + str(current_time.month) + '-' + str(current_time.day) + '/out.avi'
+        self.counter = 1
+
+        self.result = cv2.VideoWriter('output.avi',cv2.VideoWriter_fourcc(*'MJPG'),30, self.size)
 
         self.input_rect = pygame.Rect(0, 0, 440, 34)
 
@@ -50,19 +60,24 @@ class UserInterface():
         self.color = self.color_passive
 
         self.active = False
-        self.recording = False
+        self.recording = True
         self.running = 1
 
     def update_screen(self, frame):
             # reset screen
             self.screen.fill([0, 0, 0])
 
+            #self.filename = 'outp' + str(self.counter) + '.avi'
+            #self.result = cv2.VideoWriter(self.filename,cv2.VideoWriter_fourcc(*'MJPG'),30, self.size)
+
             if(type(frame) != type(None)): 
-                temp_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  
+                temp_frame = cv2.resize(frame, (1280, 720), interpolation=cv2.INTER_AREA) # setup the frame for record mode
+                frame = temp_frame
+
+                temp_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  #setup frame for display in the user interface
                 temp_frame = np.rot90(temp_frame)
                 temp_frame = cv2.flip(temp_frame, 0)
                 temp_frame = cv2.resize(temp_frame, (720, 1280), interpolation=cv2.INTER_AREA) # rotate, flip and resize the frame of the camera
-
                 temp_frame = pygame.surfarray.make_surface(temp_frame) # create a surface from the camera frame
 
                 self.screen.blit(temp_frame, (0,0)) # display the camera frame in user interface
@@ -85,6 +100,8 @@ class UserInterface():
             if self.recording == False:
                 #self.cap.release()
                 self.result.release()
+                self.counter+= 1
+                #self.result = cv2.VideoWriter('out1.avi',cv2.VideoWriter_fourcc(*'MJPG'),30, self.size)
                 rec = "Not Recording."
             else:
                 rec = "Recording!"
@@ -158,7 +175,7 @@ class UserInterface():
             else: # else color is passive
                 self.color = self.color_passive
 
-            UserInterface.input(self)
+            #UserInterface.input(self)
             pygame_events = UserInterface.update_screen(self, frame)
 
             for event in pygame_events:

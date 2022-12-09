@@ -11,7 +11,7 @@ HOST = "127.0.0.1"
 RADARPORT = 8001 
 CAMERAPORT = 8002 
 
-arduino = serial.Serial(port='COM3', baudrate=115200, timeout=.1)
+#arduino = serial.Serial(port='COM3', baudrate=115200, timeout=.1)
 
 class SocketClient:
 
@@ -109,7 +109,7 @@ class SocketClient:
                 stri = str(self.angles[0]) + ":" + str(self.angles[1]) + ";" + self.input + '\n'
             #stri = "90.000;0.000 " + '\n'
             print(stri)
-            self.write_read(stri) # send over serial to arduino
+            #self.write_read(stri) # send over serial to arduino
     
 
 main = SocketClient()

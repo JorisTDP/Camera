@@ -9,8 +9,6 @@ video = cv2.VideoCapture(0)
 
 # We need to check if camera
 # is opened previously or not
-if (video.isOpened() == False):
-    print("Error reading video file")
 
 # We need to set resolutions.
 # so, convert them from float to integer.
@@ -22,9 +20,9 @@ size = (frame_width, frame_height)
 # Below VideoWriter object will create
 # a frame of above defined The output
 # is stored in 'output.avi' file.
-result = cv2.VideoWriter('output.avi',
+result = cv2.VideoWriter('outp.avi',
                          cv2.VideoWriter_fourcc(*'MJPG'),
-                         10, size)
+                         60, size)
 
 while(True):
     ret, frame = video.read()
@@ -41,8 +39,9 @@ while(True):
 
         # Press S on keyboard
         # to stop the process
-        if cv2.waitKey('q') & 0xFF == ord(1):
-            break
+        if cv2.waitKey(1) &0XFF == ord('x'):
+            result.release()
+            #break
 
     # Break the loop
     else:
@@ -51,8 +50,8 @@ while(True):
 # When everything done, release
 # the video capture and video
 # write objects
-video.release()
-result.release()
+#video.release()
+#result.release()
 
 # Closes all the frames
 cv2.destroyAllWindows()
