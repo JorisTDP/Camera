@@ -10,7 +10,11 @@ long pitch_pos;
 
 float ratio = 0.8f; // 0.01 -> really fast   0.99 -> really slow
 int num_readings = 50; //40-45
+float oldPitch = 0;
+float oldRoll = 0;
+float x_angle = 0;
 float z_angle = 0;
+float threshold = 1.3f; //1.3
 
 typedef struct YawPitchRoll_t {
   float yaw;
@@ -52,13 +56,13 @@ void setup() {
   step_y.setPinsInverted(true, false,false);
   step_y.setCurrentPosition(0);
   
-  step_p.setMaxSpeed(6000);
-  step_p.setAcceleration(5000);
+  step_p.setMaxSpeed(9000);
+  step_p.setAcceleration(9000);
   step_p.setPinsInverted(true, false, false); // direction inverted, step normal, enable normal
   step_p.setCurrentPosition(0);
   
-  step_r.setMaxSpeed(1500);
-  step_r.setAcceleration(750);
+  step_r.setMaxSpeed(3000);
+  step_r.setAcceleration(1500);
   step_r.setPinsInverted(true, false, false); // direction inverted, step normal, enable normal
   step_r.setCurrentPosition(0);
   //step_p.setMinPulseWidth(20);
@@ -76,7 +80,7 @@ void setup() {
 void autohome() {
 
   step_y.enableOutputs();
-  step_y.setSpeed(150);// * microstepping_multiplier);
+  /*step_y.setSpeed(150);// * microstepping_multiplier);
   while(digitalRead(yaw_limit_sw) == HIGH) {
     step_y.runSpeed();
   }
@@ -85,7 +89,7 @@ void autohome() {
   step_y.moveTo(0);
   while(step_p.run()) {
     // block while moving
-  }
+  }*/
   
   step_p.enableOutputs();
   step_p.setSpeed(-200 * microstepping_multiplier);
@@ -134,11 +138,12 @@ void loop() {
         // do nothing      
       } else {
         //ratio = user_input.toInt();
-        ratio = user_input.toFloat();
+        threshold = user_input.toFloat(); //threshold
       }
 
-    Serial.println("Z: " + z_string);
-
+    //Serial.println("X: " + x_string);//sometime returns 1
+    //Serial.println("Z: " + z_string);
+     
     char x_array[x_string.length()+1];
     char z_array[z_string.length()+1];
 
@@ -149,20 +154,19 @@ void loop() {
 
     run_steppers();
 
-    float x_angle = atof(x_array);
-    z_angle = atof(z_array);
+    if(atof(x_array) <= 359){
+        x_angle = atof(x_array);
+      }
+    if(atof(z_array) <= 45){
+        z_angle = atof(z_array);
+      }
 
-    run_steppers();
- 
+    Serial.print("X: ");
     Serial.println(x_angle);
-
-    //constrain Z_ANGLE
-    if(z_angle >= 22){
-        z_angle = 22;
-      }
-     else if(z_angle <= -22){
-        z_angle = -22;
-      }
+    Serial.print("Z: ");
+    Serial.println(z_angle);
+    
+    run_steppers();
 
     //yaw_pos = ((x_angle*8)/1.8)*5.049891;// 180 = 4000 | 180 = 4,000 15 *0.72 44-45*4= 176|180
     yaw_pos = ((x_angle*8)/0.36);
@@ -179,16 +183,17 @@ void loop() {
     tmp_acc.x += reading.x;
     tmp_acc.y += reading.y;
     tmp_acc.z += reading.z;
-    delay(1);
+    //delay(1);
+    //delayMicroseconds(100);
     run_steppers();
   }
   //float ratio = 0.8f; // 0.01 -> really fast   0.99 -> really slow
   acc.x *= ratio;
   acc.y *= ratio;
   acc.z *= ratio;
-//  acc.x += (1.0f - ratio) * (tmp_acc.x/num_readings);
-//  acc.y += (1.0f - ratio) * (tmp_acc.y/num_readings);
-//  acc.z += (1.0f - ratio) * (tmp_acc.z/num_readings); 
+  acc.x += (1.0f - ratio) * (tmp_acc.x/num_readings);
+  acc.y += (1.0f - ratio) * (tmp_acc.y/num_readings);
+  acc.z += (1.0f - ratio) * (tmp_acc.z/num_readings); 
 
   acc.x += (tmp_acc.x/num_readings);
   acc.y += (tmp_acc.y/num_readings);
@@ -218,10 +223,14 @@ void loop() {
   
   //int step_y_setpoint = ypr.yaw * (160.0f/15.0f * 200 * microstepping_multiplier / 360);
   step_y.moveTo(yaw_pos);
+
+  if(ypr.pitch - oldPitch <= threshold && ypr.pitch - oldPitch >= -threshold) { ypr.pitch = oldPitch;}  
   int step_p_setpoint = ypr.pitch * (160.0f/15.0f * 200 * microstepping_multiplier / 360); // <gear ratio> * <steps per stepper revolution> * microstepping / 360 = steps per degree
   int calcPitch = pitch_pos - step_p_setpoint;
   calcPitch = constrain(calcPitch, -1000, 1050);
   step_p.moveTo(calcPitch);
+  
+  if(ypr.roll - oldRoll <= threshold && ypr.roll - oldRoll >= -threshold) { ypr.roll = oldRoll;}  
   int step_r_setpoint = ypr.roll * (160.0f/15.0f * 60 * microstepping_multiplier / 360); //80
   step_r.moveTo(-step_r_setpoint);
   

@@ -11,7 +11,7 @@ HOST = "127.0.0.1"
 RADARPORT = 8001 
 CAMERAPORT = 8002 
 
-#arduino = serial.Serial(port='COM3', baudrate=115200, timeout=.1)
+arduino = serial.Serial(port='COM3', baudrate=115200, timeout=.1)
 
 class SocketClient:
 
@@ -56,8 +56,6 @@ class SocketClient:
         z_angle = 90 - z_angle ###later weghalen !!!!!!!!!!
 
         # apply offsets to x and z angles
-        print("x offset ===")
-        print(offsets[0])
         x_angle, z_angle = x_angle + int(offsets[0]), z_angle + int(offsets[1])
         angles = [x_angle, z_angle]
 
@@ -86,6 +84,7 @@ class SocketClient:
                 print(noffset)
         except:
             print("=======cam went wrong======")
+            time.sleep(1)
 
     def main(self): # main loop
         while True:
@@ -101,6 +100,7 @@ class SocketClient:
                 self.angles = self.move_coordinates(self.signal, self.offset) #use signal and offset to calculate the desired angle.
             except:
                 print("=======radar went wrong======")
+                time.sleep(1)
      
             #stri = offset[0] +";" + offset[1] + '\n'
             if(self.correctInput == False):
@@ -109,7 +109,7 @@ class SocketClient:
                 stri = str(self.angles[0]) + ":" + str(self.angles[1]) + ";" + self.input + '\n'
             #stri = "90.000;0.000 " + '\n'
             print(stri)
-            #self.write_read(stri) # send over serial to arduino
+            self.write_read(stri) # send over serial to arduino
     
 
 main = SocketClient()

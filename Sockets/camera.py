@@ -45,9 +45,9 @@ class UserInterface():
         self.size = (self.frame_width, self.frame_height)
 
         #filepath = 'C:/Users/joris/Desktop/Stage/Camera/' + str(current_time.month) + '-' + str(current_time.day) + '/out.avi'
-        self.counter = 1
+        self.counter = 0
 
-        self.result = cv2.VideoWriter('output.avi',cv2.VideoWriter_fourcc(*'MJPG'),30, self.size)
+        self.result = [cv2.VideoWriter('output1.avi',cv2.VideoWriter_fourcc(*'MJPG'),30, self.size), cv2.VideoWriter('output2.avi',cv2.VideoWriter_fourcc(*'MJPG'),30, self.size), cv2.VideoWriter('output3.avi',cv2.VideoWriter_fourcc(*'MJPG'),30, self.size), cv2.VideoWriter('output4.avi',cv2.VideoWriter_fourcc(*'MJPG'),30, self.size),cv2.VideoWriter('output5.avi',cv2.VideoWriter_fourcc(*'MJPG'),30, self.size)]
 
         self.input_rect = pygame.Rect(0, 0, 440, 34)
 
@@ -59,15 +59,16 @@ class UserInterface():
         self.color_passive = pygame.Color('chartreuse4')
         self.color = self.color_passive
 
-        self.active = False
-        self.recording = True
+        self.active = False # check if button prompt is active
+        self.executed = False # used to run code only once
+        self.recording = True 
         self.running = 1
 
     def update_screen(self, frame):
             # reset screen
             self.screen.fill([0, 0, 0])
 
-            #self.filename = 'outp' + str(self.counter) + '.avi'
+            #self.filename = 'output' + str(self.counter) + '.avi'
             #self.result = cv2.VideoWriter(self.filename,cv2.VideoWriter_fourcc(*'MJPG'),30, self.size)
 
             if(type(frame) != type(None)): 
@@ -98,14 +99,17 @@ class UserInterface():
             self.screen.blit(offset_text, (width - font.size(txt)[0],31))
 
             if self.recording == False:
-                #self.cap.release()
-                self.result.release()
-                self.counter+= 1
-                #self.result = cv2.VideoWriter('out1.avi',cv2.VideoWriter_fourcc(*'MJPG'),30, self.size)
+                if self.executed == False:
+                    self.result[self.counter].release()
+                    self.counter+= 1
+                    #self.result = cv2.VideoWriter('out1.avi',cv2.VideoWriter_fourcc(*'MJPG'),30, self.size)
+                    self.executed = True
                 rec = "Not Recording."
             else:
                 rec = "Recording!"
-                self.result.write(frame)
+                self.result[self.counter].write(frame)
+                self.executed = False
+                
             rec_text = font.render(rec, True, (255,255,255), (0,0,0))
             self.screen.blit(rec_text, (width - font.size(txt)[0],62))
 
@@ -169,13 +173,13 @@ class UserInterface():
         while True: # self.running:
             success, frame = self.cap.read()
             if not success:
-                break
+                break   
             if self.active: # if input box is clicked set the color to active
                 self.color = self.color_active
             else: # else color is passive
                 self.color = self.color_passive
 
-            #UserInterface.input(self)
+            UserInterface.input(self)
             pygame_events = UserInterface.update_screen(self, frame)
 
             for event in pygame_events:
