@@ -38,7 +38,7 @@ class SocketClient:
 
     def move_coordinates(self, data: list, offsets: list) -> list:
 
-        location = float(data[4]), float(data[5])
+        location = float(data[4]), float(data[5]) #define position of ship/camera
         elevation = 1
 
         # calculate next coordinates
@@ -70,7 +70,7 @@ class SocketClient:
                 print("user input accepted")
                 inp = camdata[1:]
                 print(inp)
-                try:
+                try: # check if received input is a float so it can be sent to the arduino
                     check = float(inp)
                     self.input = inp
                     self.correctInput = True
