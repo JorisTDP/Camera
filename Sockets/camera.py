@@ -47,6 +47,7 @@ class UserInterface():
         #filepath = 'C:/Users/joris/Desktop/Stage/Camera/' + str(current_time.month) + '-' + str(current_time.day) + '/out.avi'
         self.counter = 0
 
+        #set the output files for a session in an array. 
         self.result = [cv2.VideoWriter('output1.avi',cv2.VideoWriter_fourcc(*'MJPG'),30, self.size), cv2.VideoWriter('output2.avi',cv2.VideoWriter_fourcc(*'MJPG'),30, self.size), cv2.VideoWriter('output3.avi',cv2.VideoWriter_fourcc(*'MJPG'),30, self.size), cv2.VideoWriter('output4.avi',cv2.VideoWriter_fourcc(*'MJPG'),30, self.size),cv2.VideoWriter('output5.avi',cv2.VideoWriter_fourcc(*'MJPG'),30, self.size)]
 
         self.input_rect = pygame.Rect(0, 0, 440, 34)

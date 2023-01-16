@@ -7,8 +7,10 @@ import time
 import threading
 import math
 
-HOST = "127.0.0.1" 
-RADARPORT = 8001 
+HOST = "127.0.0.1"
+#RADARHOST = "192.168.9.101"
+RADARPORT = 8001
+#RADARPORT = 12345 
 CAMERAPORT = 8002 
 
 arduino = serial.Serial(port='COM3', baudrate=115200, timeout=.1)
@@ -32,13 +34,14 @@ class SocketClient:
         arduino.write(bytes(x,'utf-8'))
         time.sleep(0.05)
         for i in range(2):
-            data = arduino.readline() #read if arduino has responded correctly
-            print (data.decode('utf-8'))
+           data = arduino.readline() #read if arduino has responded correctly
+           print (data.decode('utf-8'))
         return data   
 
     def move_coordinates(self, data: list, offsets: list) -> list:
 
         location = float(data[4]), float(data[5]) #define position of ship/camera
+        #location = 52.96212, 4.73450
         elevation = 1
 
         # calculate next coordinates
@@ -93,8 +96,12 @@ class SocketClient:
             try:
                 print()
                 sdata = self.s.recv(1024) #recieve radar data
+                print(sdata)
                 ndata = sdata.decode('utf-8')
                 list = ndata.split(',')
+                # lat, lon, speed, head = [float(i) for i in list]
+                # self.signal = lat, lon, speed, head #stores radar data in signal
+                # self.angles = self.move_coordinates(self.signal, self.offset) #use signal and offset to calculate the desired angle.
                 lat, lon, speed, head, loc_lat, loc_lon = [float(i) for i in list]
                 self.signal = lat, lon, speed, head, loc_lat, loc_lon #stores radar data in signal
                 self.angles = self.move_coordinates(self.signal, self.offset) #use signal and offset to calculate the desired angle.

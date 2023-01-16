@@ -9,12 +9,12 @@ long yaw_pos;
 long pitch_pos;
 
 float ratio = 0.8f; // 0.01 -> really fast   0.99 -> really slow
-int num_readings = 50; //40-45
-float oldPitch = 0;
+int num_readings = 50; // amount of reading the accelerometer makes
+float oldPitch = 0; 
 float oldRoll = 0;
 float x_angle = 0;
 float z_angle = 0;
-float threshold = 1.3f; //1.3
+float threshold = 1.3f; //threshold you can change via user interface
 
 typedef struct YawPitchRoll_t {
   float yaw;
@@ -71,16 +71,13 @@ void setup() {
   Wire.setClock(400000);
   setup_mpu_6050();
   autohome();
- // while(1) {
-//    step_r.setSpeed(10);
-//    step_r.runSpeed();
- // }
 }
 
 void autohome() {
 
   step_y.enableOutputs();
-  /*step_y.setSpeed(150);// * microstepping_multiplier);
+  
+  /*step_y.setSpeed(150);// * microstepping_multiplier); Old code used for calibration for yaw
   while(digitalRead(yaw_limit_sw) == HIGH) {
     step_y.runSpeed();
   }
@@ -91,7 +88,7 @@ void autohome() {
     // block while moving
   }*/
   
-  step_p.enableOutputs();
+  step_p.enableOutputs(); // Calibrate pitch
   step_p.setSpeed(-200 * microstepping_multiplier);
   while(digitalRead(pitch_limit_sw) == HIGH) {
     step_p.runSpeed();
@@ -102,7 +99,7 @@ void autohome() {
     // block while moving
   }
 
-  step_r.enableOutputs();
+  step_r.enableOutputs(); // Calibrate roll
   step_r.setSpeed(70 * microstepping_multiplier);
   while(digitalRead(roll_limit_sw) == HIGH) {
     step_r.runSpeed();
@@ -127,6 +124,7 @@ void loop() {
 
    // Serial.println("recieved: " + input);
 
+    // Slice received string into x,z,threshold
     String x_string = input.substring(0, input.indexOf(':'));
     String z_string = input.substring(input.indexOf(':')+1, input.indexOf(';'));  //input.indexOf('\n')
     String user_input = input.substring(input.indexOf(';')+1, input.indexOf('\n'));
@@ -154,6 +152,7 @@ void loop() {
 
     run_steppers();
 
+    // Constrains for the received angles so they can only make real turns
     if(atof(x_array) <= 359){
         x_angle = atof(x_array);
       }
@@ -168,14 +167,15 @@ void loop() {
     
     run_steppers();
 
-    //yaw_pos = ((x_angle*8)/1.8)*5.049891;// 180 = 4000 | 180 = 4,000 15 *0.72 44-45*4= 176|180
-    yaw_pos = ((x_angle*8)/0.36);
-    pitch_pos = ((z_angle*8)/1.8) * 10;// * microstepping_multiplier; 38 tandwielen
+    // Calculate angle to steps for the motor
+    yaw_pos = ((x_angle*8)/1.8)*5.049891;// 180 = 4000 | 180 = 4,000 15 *0.72 44-45*4= 176|180
+    //yaw_pos = ((-x_angle*8)/0.36);
+    pitch_pos = ((-z_angle*8)/1.8) * 10;// * microstepping_multiplier; 38 tandwielen
 
     run_steppers();
   }                               
-    //long yaw_pos = z_angle * 251.11111;
-    //long yaw_pos = 10;
+
+  //read accelerometer
   static Acc_s acc = read_mpu_6050_data();
   Acc_s tmp_acc = {.x = 0, .y = 0, .z = 0};
   for(int i = 0; i < num_readings; i++) {
@@ -184,7 +184,7 @@ void loop() {
     tmp_acc.y += reading.y;
     tmp_acc.z += reading.z;
     //delay(1);
-    //delayMicroseconds(100);
+    delayMicroseconds(150); //changing this value changes the speed of stabilisation (lower = faster but less accurate)
     run_steppers();
   }
   //float ratio = 0.8f; // 0.01 -> really fast   0.99 -> really slow
@@ -220,17 +220,17 @@ void loop() {
   Serial.println();*/
   run_steppers();
 
-  
+  //Move motors to calulated positions
   //int step_y_setpoint = ypr.yaw * (160.0f/15.0f * 200 * microstepping_multiplier / 360);
   step_y.moveTo(yaw_pos);
 
-  if(ypr.pitch - oldPitch <= threshold && ypr.pitch - oldPitch >= -threshold) { ypr.pitch = oldPitch;}  
+  if(ypr.pitch - oldPitch <= threshold && ypr.pitch - oldPitch >= -threshold) { ypr.pitch = oldPitch;}  //use threshold
   int step_p_setpoint = ypr.pitch * (160.0f/15.0f * 200 * microstepping_multiplier / 360); // <gear ratio> * <steps per stepper revolution> * microstepping / 360 = steps per degree
   int calcPitch = pitch_pos - step_p_setpoint;
   calcPitch = constrain(calcPitch, -1000, 1050);
   step_p.moveTo(calcPitch);
   
-  if(ypr.roll - oldRoll <= threshold && ypr.roll - oldRoll >= -threshold) { ypr.roll = oldRoll;}  
+  if(ypr.roll - oldRoll <= threshold && ypr.roll - oldRoll >= -threshold) { ypr.roll = oldRoll;}  //use threshold
   int step_r_setpoint = ypr.roll * (160.0f/15.0f * 60 * microstepping_multiplier / 360); //80
   step_r.moveTo(-step_r_setpoint);
   
