@@ -5,8 +5,8 @@
 #include <MultiStepper.h>
 #include <AccelStepper.h>
 
-long yaw_pos;
-long pitch_pos;
+long g_yaw_pos = 0;
+long g_pitch_pos = 0;
 
 float ratio = 0.8f; // 0.01 -> really fast   0.99 -> really slow
 int num_readings = 50; // amount of reading the accelerometer makes
@@ -111,25 +111,15 @@ void autohome() {
   }
 }
 
-void loop() {
-  while(Serial.available() > 0) {
-    // Since this loop can take quite long to ensure stability and smoothness in the video
-    // the steppers should check to run the steppers as often as possible. This is repeated
-    // throughout this loop.
-    run_steppers();
-
+void readAngles(){
     String input = Serial.readStringUntil('\n');
 
     run_steppers();
-
-   // Serial.println("recieved: " + input);
 
     // Slice received string into x,z,threshold
     String x_string = input.substring(0, input.indexOf(':'));
     String z_string = input.substring(input.indexOf(':')+1, input.indexOf(';'));  //input.indexOf('\n')
     String user_input = input.substring(input.indexOf(';')+1, input.indexOf('\n'));
-//  step_p.moveTo(900*sin((float)millis()/1000));
-//  step_r.moveTo(960*cos((float)millis()/1000));
     run_steppers();
 
     if(user_input == "n"){
@@ -138,9 +128,6 @@ void loop() {
         //ratio = user_input.toInt();
         threshold = user_input.toFloat(); //threshold
       }
-
-    //Serial.println("X: " + x_string);//sometime returns 1
-    //Serial.println("Z: " + z_string);
      
     char x_array[x_string.length()+1];
     char z_array[z_string.length()+1];
@@ -153,12 +140,25 @@ void loop() {
     run_steppers();
 
     // Constrains for the received angles so they can only make real turns
-    if(atof(x_array) <= 359){
-        x_angle = atof(x_array);
-      }
-    if(atof(z_array) <= 45){
-        z_angle = atof(z_array);
-      }
+    float x = atof(x_array); 
+    if (x <= 359) {
+      x_angle = x; 
+    }
+
+    float z = atof(z_array); 
+    if (z <= 45) {
+      z_angle = z; 
+    }
+ }
+
+void loop() {
+  while(Serial.available() > 0) {
+    // Since this loop can take quite long to ensure stability and smoothness in the video
+    // the steppers should check to run the steppers as often as possible. This is repeated
+    // throughout this loop.
+    run_steppers();
+
+    readAngles();
 
     Serial.print("X: ");
     Serial.println(x_angle);
@@ -168,9 +168,9 @@ void loop() {
     run_steppers();
 
     // Calculate angle to steps for the motor
-    yaw_pos = ((x_angle*8)/1.8)*5.049891;// 180 = 4000 | 180 = 4,000 15 *0.72 44-45*4= 176|180
-    //yaw_pos = ((-x_angle*8)/0.36);
-    pitch_pos = ((-z_angle*8)/1.8) * 10;// * microstepping_multiplier; 38 tandwielen
+    g_yaw_pos = ((x_angle*8)/1.8)*5.049891;// 180 = 4000 | 180 = 4,000 15 *0.72 44-45*4= 176|180
+    //g_yaw_pos = ((-x_angle*8)/0.36);
+    g_pitch_pos = ((-z_angle*8)/1.8) * 10;// * microstepping_multiplier; 38 tandwielen
 
     run_steppers();
   }                               
@@ -212,7 +212,7 @@ void loop() {
   ypr.pitch = constrain(ypr.pitch, -20.0f, 20.0f);
   ypr.roll = constrain(ypr.roll, -15.0f, 15.0f);
  /* Serial.print("yaw:");
-  Serial.print(yaw_pos);
+  Serial.print(g_yaw_pos);
   Serial.print("\tpitch:");
   Serial.print(ypr.pitch);
   Serial.print("\troll:");
@@ -222,17 +222,19 @@ void loop() {
 
   //Move motors to calulated positions
   //int step_y_setpoint = ypr.yaw * (160.0f/15.0f * 200 * microstepping_multiplier / 360);
-  step_y.moveTo(yaw_pos);
+  step_y.moveTo(g_yaw_pos);
 
   if(ypr.pitch - oldPitch <= threshold && ypr.pitch - oldPitch >= -threshold) { ypr.pitch = oldPitch;}  //use threshold
   int step_p_setpoint = ypr.pitch * (160.0f/15.0f * 200 * microstepping_multiplier / 360); // <gear ratio> * <steps per stepper revolution> * microstepping / 360 = steps per degree
-  int calcPitch = pitch_pos - step_p_setpoint;
+  int calcPitch = g_pitch_pos - step_p_setpoint;
   calcPitch = constrain(calcPitch, -1000, 1050);
   step_p.moveTo(calcPitch);
+  oldPitch = ypr.pitch;
   
   if(ypr.roll - oldRoll <= threshold && ypr.roll - oldRoll >= -threshold) { ypr.roll = oldRoll;}  //use threshold
   int step_r_setpoint = ypr.roll * (160.0f/15.0f * 60 * microstepping_multiplier / 360); //80
   step_r.moveTo(-step_r_setpoint);
+  oldRoll = ypr.roll;
   
   run_steppers();
   int delay_in_ms = 25;

@@ -13,7 +13,7 @@ RADARPORT = 8001
 #RADARPORT = 12345 
 CAMERAPORT = 8002 
 
-arduino = serial.Serial(port='COM3', baudrate=115200, timeout=.1)
+g_arduino = serial.Serial(port='COM3', baudrate=115200, timeout=.1)
 
 class SocketClient:
 
@@ -31,10 +31,10 @@ class SocketClient:
         self.input = 1
 
     def write_read(self, x): # send angles (x) to arduino
-        arduino.write(bytes(x,'utf-8'))
+        g_arduino.write(bytes(x,'utf-8'))
         time.sleep(0.05)
         for i in range(2):
-           data = arduino.readline() #read if arduino has responded correctly
+           data = g_arduino.readline() #read if arduino has responded correctly
            print (data.decode('utf-8'))
         return data   
 
@@ -111,9 +111,11 @@ class SocketClient:
      
             #stri = offset[0] +";" + offset[1] + '\n'
             if(self.correctInput == False):
-                stri = str(self.angles[0]) + ":" + str(self.angles[1]) + ";" + "n" '\n' #put the x and z angle into a string so it can be sent over serial.
+                stri = f"{self.angles[0]}:{self.angles[1]};n\n"
+                #stri = str(self.angles[0]) + ":" + str(self.angles[1]) + ";" + "n" '\n' #put the x and z angle into a string so it can be sent over serial.
             else:
-                stri = str(self.angles[0]) + ":" + str(self.angles[1]) + ";" + self.input + '\n'
+                stri = f"{self.angles[0]}:{self.angles[1]};{self.input}\n"
+                #stri = str(self.angles[0]) + ":" + str(self.angles[1]) + ";" + self.input + '\n'
             #stri = "90.000;0.000 " + '\n'
             print(stri)
             self.write_read(stri) # send over serial to arduino
